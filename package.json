@@ -1,0 +1,21 @@
+{
+  "name": "inyecar-plataforma",
+  "version": "0.5.0",
+  "private": true,
+  "description": "Plataforma de gestión para talleres mecánicos. INYECAR Salinas es el primer taller configurado.",
+  "type": "module",
+  "main": "servidor.cjs",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node servidor.cjs",
+    "dev": "node --watch server/index.js",
+    "seed": "node scripts/seed.js",
+    "test": "node --test --test-concurrency=1 \"test/*.test.js\"",
+    "backup": "node scripts/backup.js",
+    "restore": "node scripts/restore.js",
+    "crear-taller": "node scripts/crear-taller.js",
+    "recuperar-acceso": "node scripts/recuperar-acceso.js"
+  }
+}
