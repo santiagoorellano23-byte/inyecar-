@@ -1,8 +1,8 @@
 // Mostrador: ventas sin visita. El stock se descuenta una vez; anular o devolver corrige stock y dinero con movimientos.
-import { get, post } from '../api.js?v=0.6.0';
-import {entrada} from '../movimiento.js?v=0.6.0';
-import {categoriaDe,categoriasPresentes,normalizar} from '../seleccion-rapida.js?v=0.6.0';
-import { esc, icono, pesos, cant, fecha, fechaHora, chip, campo, alEnviar, toast, confirmar, aviso, MEDIOS, aEntradaDinero, numeroEntrada, revisarPago } from '../ui.js?v=0.6.0';
+import { get, post } from '../api.js?v=0.6.1';
+import {entrada} from '../movimiento.js?v=0.6.1';
+import {categoriaDe,categoriasPresentes,normalizar} from '../seleccion-rapida.js?v=0.6.1';
+import { esc, icono, pesos, cant, fecha, fechaHora, chip, campo, alEnviar, toast, confirmar, aviso, MEDIOS, aEntradaDinero, numeroEntrada, revisarPago } from '../ui.js?v=0.6.1';
 
 export default async function mostrador({ params, app, query }) {
   if(params.id)return detalle(params.id,app);

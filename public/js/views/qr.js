@@ -1,7 +1,7 @@
 // Leer QR (cámara o imagen, si el navegador lo permite) con alternativa manual. Generar el QR de la página pública.
-import { get } from '../api.js?v=0.6.0';
-import { esc, icono, aviso, toast } from '../ui.js?v=0.6.0';
-import { qrSVG, lectorDisponible, interpretarCodigo } from '../qr-util.js?v=0.6.0';
+import { get } from '../api.js?v=0.6.1';
+import { esc, icono, aviso, toast } from '../ui.js?v=0.6.1';
+import { qrSVG, lectorDisponible, interpretarCodigo } from '../qr-util.js?v=0.6.1';
 
 export default async function qr({ app }) {
   const t = app.sesion.taller;

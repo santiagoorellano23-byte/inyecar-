@@ -1,10 +1,10 @@
 // Arranque del panel: sesión, navegación, rutas, ayuda contextual y aviso de cambios sin guardar.
-import { api, get, post, configurarApi } from './api.js?v=0.6.0';
-import { esc, icono, toast, confirmar, hayCambiosSinGuardar, fijarZona, campo, alEnviar } from './ui.js?v=0.6.0';
-import { abrirAyuda } from './ayuda.js?v=0.6.0';
-import { selectorTema, enlazarTema } from './tema.js?v=0.6.0';
-import {material,borrarBorrador} from './recepcion-modelo.js?v=0.6.0';
-import { entrada, detenerMovimiento } from './movimiento.js?v=0.6.0';
+import { api, get, post, configurarApi } from './api.js?v=0.6.1';
+import { esc, icono, toast, confirmar, hayCambiosSinGuardar, fijarZona, campo, alEnviar } from './ui.js?v=0.6.1';
+import { abrirAyuda } from './ayuda.js?v=0.6.1';
+import { selectorTema, enlazarTema } from './tema.js?v=0.6.1';
+import {material,borrarBorrador} from './recepcion-modelo.js?v=0.6.1';
+import { entrada, detenerMovimiento } from './movimiento.js?v=0.6.1';
 
 // [patrón, módulo, permiso, sección del menú]
 const RUTAS = [
@@ -216,7 +216,7 @@ async function mostrar({ conservarScroll = false } = {}) {
   }
   if (!conservarScroll) main.setAttribute('aria-busy', 'true');
   try {
-    const mod = await import(`./views/${r.modulo}.js?v=0.6.0`);
+    const mod = await import(`./views/${r.modulo}.js?v=0.6.1`);
     const v = await mod.default({ params: r.params, query: r.query, app });
     if(renderId!==turnoRender) return;
     if (!v) { main.removeAttribute('aria-busy'); return; }

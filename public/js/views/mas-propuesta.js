@@ -1,5 +1,5 @@
-import {esc,icono} from '../ui.js?v=0.6.0';
-import {material} from '../recepcion-modelo.js?v=0.6.0';
+import {esc,icono} from '../ui.js?v=0.6.1';
+import {material} from '../recepcion-modelo.js?v=0.6.1';
 export const GRUPOS_MAS=[
  ['Agenda y clientes',[
   ['agenda','calendar_month','Agenda de turnos','agenda.ver'],

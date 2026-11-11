@@ -1,6 +1,6 @@
 // Caja: dinero que entró y salió por medio de pago en un período. No es contabilidad ni tiene validez fiscal.
-import { get } from '../api.js?v=0.6.0';
-import { esc, icono, pesos, fechaHora, hora, campo, MEDIOS, hoyLocal } from '../ui.js?v=0.6.0';
+import { get } from '../api.js?v=0.6.1';
+import { esc, icono, pesos, fechaHora, hora, campo, MEDIOS, hoyLocal } from '../ui.js?v=0.6.1';
 
 export default async function caja({ query, app }) {
   const desde = query.desde || hoyLocal(), hasta = query.hasta || desde;

@@ -1,6 +1,6 @@
 # INYECAR · gestión para talleres
 
-Versión 0.6.0. Aplicación web para recibir vehículos, organizar órdenes, registrar revisión, presupuesto y autorización, repuestos, trabajo, control, cobros y entrega.
+Versión 0.6.1. Aplicación web para recibir vehículos, organizar órdenes, registrar revisión, presupuesto y autorización, repuestos, trabajo, control, cobros y entrega.
 
 ## Requisitos y demostración
 
@@ -19,7 +19,7 @@ Abrir http://127.0.0.1:3000. La demostración usa exclusivamente datos ficticios
 npm test
 ```
 
-La entrega 0.6.0 pasó 81 pruebas automáticas. Cubren permisos, aislamiento por taller, recepción, idempotencia, presupuestos, cobros, stock, archivos, migraciones y respaldo/restauración.
+La entrega 0.6.1 pasó 81 pruebas automáticas. Cubren permisos, aislamiento por taller, recepción, idempotencia, presupuestos, cobros, stock, archivos, migraciones y respaldo/restauración.
 
 ## Operación
 

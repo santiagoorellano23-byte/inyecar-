@@ -1,8 +1,8 @@
 // Documento emitido: vista imprimible, enlace para compartir con vencimiento (y su QR), anulación con motivo.
-import { get, post } from '../api.js?v=0.6.0';
-import { esc, icono, fechaHora, campo, alEnviar, toast, confirmar, aviso, copiar } from '../ui.js?v=0.6.0';
-import { renderDocumento, ESTILO_DOCUMENTO } from '../documento.js?v=0.6.0';
-import { qrSVG } from '../qr-util.js?v=0.6.0';
+import { get, post } from '../api.js?v=0.6.1';
+import { esc, icono, fechaHora, campo, alEnviar, toast, confirmar, aviso, copiar } from '../ui.js?v=0.6.1';
+import { renderDocumento, ESTILO_DOCUMENTO } from '../documento.js?v=0.6.1';
+import { qrSVG } from '../qr-util.js?v=0.6.1';
 
 export default async function documento({ params, app }) {
   const { documento: d } = await get(`/api/documentos/${params.id}`);

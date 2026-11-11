@@ -1,5 +1,5 @@
-import {api,get} from './api.js?v=0.6.0';
-import {esc,fechaHora} from './ui.js?v=0.6.0';
+import {api,get} from './api.js?v=0.6.1';
+import {esc,fechaHora} from './ui.js?v=0.6.1';
 
 export const NOMBRES_FOTO={tablero:'Tablero',exterior:'Exterior',detalle:'Detalle de daño previo'};
 const falla=mensaje=>Object.assign(new Error(mensaje),{campo:'fotosIngreso'});

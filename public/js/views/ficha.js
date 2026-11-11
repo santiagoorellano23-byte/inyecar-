@@ -1,7 +1,7 @@
 // Ficha del auto: identidad estable, contacto actual, lecturas fechadas, próximo service, pendientes e historial.
-import { get, post, put, api } from '../api.js?v=0.6.0';
-import { esc, icono, patente, nombreAuto, chipSituacion, chip, fecha, km, pesos, campo, alEnviar, toast, confirmar } from '../ui.js?v=0.6.0';
-import { camposVehiculo, enlazarModelos } from './autos.js?v=0.6.0';
+import { get, post, put, api } from '../api.js?v=0.6.1';
+import { esc, icono, patente, nombreAuto, chipSituacion, chip, fecha, km, pesos, campo, alEnviar, toast, confirmar } from '../ui.js?v=0.6.1';
+import { camposVehiculo, enlazarModelos } from './autos.js?v=0.6.1';
 
 const RES = { resuelto: ['Resuelto y comprobado', 'verde', 'check'], mejoro: ['Mejoró, falta resolver', 'ambar', 'alerta'], no_reproducido: ['No se pudo reproducir', 'azul', 'info'], pendiente: ['Sigue pendiente', 'rojo', 'alerta'] };
 
