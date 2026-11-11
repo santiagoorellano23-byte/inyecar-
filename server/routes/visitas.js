@@ -11,6 +11,7 @@ import { respuestaDe, esCambioPendiente, bloqueosRealizar, bloqueosControl, cont
 import { consumirRepuesto, reintegrarRepuesto, consumirProducto, reintegrarProducto } from './stock.js';
 import { registrarHallazgo, leerHallazgos } from '../hallazgos.js';
 import { datosRecepcion, motivoRecepcion } from '../recepcion.js';
+import {validarEstadoIngreso,vincularEstadoIngreso} from '../estado-ingreso.js';
 
 const zona = (ctx) => ctx.taller.config.zona_horaria || 'America/Argentina/Mendoza';
 const UNIDADES = ['u.', 'L', 'kg', 'm', 'h', 'juego', 'kit', 'par'];
@@ -137,6 +138,8 @@ export function recibirAuto(ctx, b) {
   const plantillaId = tipo === 'service' ? idEntero(b.plantillaId) : null;
   const plantilla = plantillaId ? delTaller(db, 'plantillas_service', tid, plantillaId, 'Elegí una plantilla de service de este taller.') : null;
 
+  const estadoIngreso = validarEstadoIngreso(ctx, b.estadoIngreso);
+
   const numero = siguiente(db, tid, 'visita');
   const id = insertar(db, `INSERT INTO visitas (taller_id, numero, vehiculo_id, contacto_id, contacto_nombre, contacto_telefono, tipo, motivo, responsable_id, prioridad,
       retiro_acordado, retiro_nota, ingreso_at, turno_id, relacionada_id, relacion_nota, autorizacion_ingreso, plantilla_id, creado_por)
@@ -146,6 +149,7 @@ export function recibirAuto(ctx, b) {
   autorizacion, plantilla?.id ?? null, ctx.usuario.id);
   const v = { id };
   if(recepcion)ejecutar(db,'UPDATE visitas SET recepcion_json = ? WHERE taller_id = ? AND id = ?',JSON.stringify(recepcion),tid,id);
+  vincularEstadoIngreso(ctx,estadoIngreso,id,vehiculoId);
   registrarLectura(ctx, vehiculoId, id, { km: b.km, sinKm: !!b.sinKm, explicacion: b.kmExplicacion, origen: 'Tablero, al recibir' });
   if (turnoId) ejecutar(db, "UPDATE turnos SET estado = 'ingresado', visita_id = ?, version = version + 1 WHERE id = ?", id, turnoId);
 

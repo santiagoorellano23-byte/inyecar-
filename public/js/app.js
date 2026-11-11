@@ -1,9 +1,10 @@
 // Arranque del panel: sesión, navegación, rutas, ayuda contextual y aviso de cambios sin guardar.
-import { api, get, post, configurarApi } from './api.js?v=0.5.0';
-import { esc, icono, toast, confirmar, hayCambiosSinGuardar, fijarZona, campo, alEnviar } from './ui.js?v=0.5.0';
-import { abrirAyuda } from './ayuda.js?v=0.5.0';
-import { selectorTema, enlazarTema } from './tema.js?v=0.5.0';
-import {material,borrarBorrador} from './recepcion-modelo.js?v=0.5.0';
+import { api, get, post, configurarApi } from './api.js?v=0.6.0-rc.3';
+import { esc, icono, toast, confirmar, hayCambiosSinGuardar, fijarZona, campo, alEnviar } from './ui.js?v=0.6.0-rc.3';
+import { abrirAyuda } from './ayuda.js?v=0.6.0-rc.3';
+import { selectorTema, enlazarTema } from './tema.js?v=0.6.0-rc.3';
+import {material,borrarBorrador} from './recepcion-modelo.js?v=0.6.0-rc.3';
+import { entrada, detenerMovimiento } from './movimiento.js?v=0.6.0-rc.3';
 
 // [patrón, módulo, permiso, sección del menú]
 const RUTAS = [
@@ -177,6 +178,7 @@ function pantallaIngreso(mensaje) {
     await iniciar();
   });
   f.querySelector('input').focus();
+  entrada(raiz.querySelector('h1'));
 }
 
 async function mostrar({ conservarScroll = false } = {}) {
@@ -185,6 +187,7 @@ async function mostrar({ conservarScroll = false } = {}) {
   const r = interpretar();
   if (!r) { location.replace('#/hoy'); return; }
   const main = document.getElementById('contenido');
+  detenerMovimiento(main);
   const scroll = window.scrollY;
   raiz.querySelectorAll('[data-seccion]').forEach((a) => { if (a.dataset.seccion === r.seccion) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   const grupo=grupoRuta(r);
@@ -210,7 +213,7 @@ async function mostrar({ conservarScroll = false } = {}) {
   }
   if (!conservarScroll) main.setAttribute('aria-busy', 'true');
   try {
-    const mod = await import(`./views/${r.modulo}.js?v=0.5.0`);
+    const mod = await import(`./views/${r.modulo}.js?v=0.6.0-rc.3`);
     const v = await mod.default({ params: r.params, query: r.query, app });
     if(renderId!==turnoRender) return;
     if (!v) { main.removeAttribute('aria-busy'); return; }
@@ -226,8 +229,11 @@ async function mostrar({ conservarScroll = false } = {}) {
     const mem=memoriaVistas.get(vistaActual);
     if(mem) for(const x of mem.campos){const el=document.getElementById(x.id);if(el&&el.value!==x.valor){el.value=x.valor;el.dispatchEvent(new Event('input',{bubbles:true}));}}
     if (conservarScroll) window.scrollTo(0, scroll);
-    else if(mem) window.scrollTo(0,mem.scroll);
+    else if(mem) { window.scrollTo(0,mem.scroll); (main.querySelector('h1') || main).focus({preventScroll:true}); }
     else { window.scrollTo(0, 0); (main.querySelector('h1') || main).focus({ preventScroll: true }); }
+    // En la orden cambia el contenido de la solapa; la identidad y las barras sticky quedan quietas.
+    // Es una entrada de opacidad, nunca una transición de posición de datos o importes.
+    if (!conservarScroll) entrada(main.querySelector('[data-seccion-cuerpo]') || main.querySelector('h1'));
   } catch (e) {
     if(renderId!==turnoRender) return;
     main.removeAttribute('aria-busy');

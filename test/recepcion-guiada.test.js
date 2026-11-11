@@ -35,13 +35,13 @@ test('Hoy devuelve asignaciones utilizables en los tres roles y no vincula turno
  assert.equal((await dueno.pedir('POST','/api/visitas',{...cuerpo('ZZ101ZZ'),turnoId:turno.id})).estado,400);
  assert.equal(E.servidor.db.prepare('SELECT COUNT(*) n FROM visitas').get().n,antes);
  assert.equal(E.servidor.db.prepare('SELECT estado FROM turnos WHERE id=?').get(turno.id).estado,'confirmado');
- const v=await dueno.post('/api/visitas',{...cuerpo('ZZ100ZZ'),turnoId:turno.id});assert.equal(v.visita.turno_id,turno.id);
+ const v=await dueno.recibir({...cuerpo('ZZ100ZZ'),turnoId:turno.id});assert.equal(v.visita.turno_id,turno.id);
 });
 test('Recepción guiada: motivos y relato separados; marca, año y lectura desconocida reales; reintento idempotente',async()=>{
- const b=cuerpo(),r=await dueno.post('/api/visitas',b,{idempotencia:'recepcion-guiada-uno'}),otra=await dueno.post('/api/visitas',b,{idempotencia:'recepcion-guiada-uno'});
+ const b=cuerpo(),r=await dueno.recibir(b,{idempotencia:'recepcion-guiada-uno'}),otra=await dueno.recibir(b,{idempotencia:'recepcion-guiada-uno'});
  assert.equal(r.id,otra.id);assert.equal(otra.repetido,true);
  const v=(await dueno.get('/api/visitas/'+r.id)).visita;
- assert.deepEqual(v.recepcion,b.recepcion);assert.equal(v.vehiculo.marca,'Fiat');assert.equal(v.vehiculo.anio,2022);assert.equal(v.lecturas[0].km,null);assert.equal(v.autorizacion_ingreso,null);assert.equal(v.presupuesto,null);
+ assert.deepEqual(Object.fromEntries(Object.entries(v.recepcion).filter(([k])=>k!=='estadoIngreso')),b.recepcion);assert.equal(v.vehiculo.marca,'Fiat');assert.equal(v.vehiculo.anio,2022);assert.equal(v.lecturas[0].km,null);assert.equal(v.autorizacion_ingreso,null);assert.equal(v.presupuesto,null);
  assert.equal(v.motivo,'Frenos (Vibra al frenar)\nSolo ocurre en bajada.');
  assert.equal(v.dimensiones.find(([k])=>k==='Autorización')[1],'Revisión aceptada');
  const anterior=(await dueno.get('/api/visitas/'+E.datos.etios.visitaActual)).visita;
@@ -61,11 +61,11 @@ test('La recepción rechaza autorización inconsistente, motivos ajenos, otro va
 });
 test('Service como motivo no autoriza; revisión con costo y service explícitos conservan sus reglas',async()=>{
  const b=cuerpo('AA124ZZ');b.recepcion.motivos=[{id:'service',detalles:['Aceite y filtros']}];
- const r=await dueno.post('/api/visitas',b);assert.equal(r.visita.tipo,'revision');assert.equal(r.visita.autorizacion_ingreso,null);
+ const r=await dueno.recibir(b);assert.equal(r.visita.tipo,'revision');assert.equal(r.visita.autorizacion_ingreso,null);
  const c=cuerpo('AA125ZZ');c.recepcion.revisionCosto='si';c.autorizacion={revisionConCosto:true,persona:'Titular ficticio',importe:'1000'};
- const rc=await dueno.post('/api/visitas',c);assert.equal(rc.visita.presupuesto.lineas[0].tipo,'revision');assert.equal(rc.visita.presupuesto.lineas[0].autorizada_ingreso,1);
+ const rc=await dueno.recibir(c);assert.equal(rc.visita.presupuesto.lineas[0].tipo,'revision');assert.equal(rc.visita.presupuesto.lineas[0].autorizada_ingreso,1);
  const s=cuerpo('AA126ZZ');s.tipo='service';s.recepcion.autoriza='service';s.autorizacion={persona:'Titular ficticio'};
- const rs=await dueno.post('/api/visitas',s);assert.equal(rs.visita.tipo,'service');assert.equal(rs.visita.presupuesto,null);
+ const rs=await dueno.recibir(s);assert.equal(rs.visita.tipo,'service');assert.equal(rs.visita.presupuesto,null);
 });
 test('Más respeta orden exacto y roles; no muestra grupos vacíos ni accesos sin permiso',()=>{
  assert.deepEqual(GRUPOS_MAS.map(x=>x[0]),['Agenda y clientes','Repuestos y compras','Dinero','Consulta','Administración']);

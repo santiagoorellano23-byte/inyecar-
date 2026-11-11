@@ -10,7 +10,7 @@ import { crearRespaldo, restaurarRespaldo } from '../server/respaldo.js';
 test('Los datos persisten tras reiniciar y el respaldo se restaura con archivos y relaciones', async () => {
   const E = await levantar();
   const carla = await E.cliente('recepcion');
-  const r = await carla.post('/api/visitas', { vehiculo: { patente: 'PER 001' }, contacto: { nombre: 'Persistencia (prueba)' }, tipo: 'revision', motivo: 'Prueba de guardado', km: '1234' });
+  const r = await carla.recibir({ vehiculo: { patente: 'PER 001' }, contacto: { nombre: 'Persistencia (prueba)' }, tipo: 'revision', motivo: 'Prueba de guardado', km: '1234' });
   const png = Buffer.from('89504e470d0a1a0a0000000d4948445200000001000000010806000000001f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082', 'hex');
   const adj = await carla.ok('POST', `/api/adjuntos?ambito=visita&visitaId=${r.id}`, undefined, { crudo: png, cabeceras: { 'Content-Type': 'image/png' } });
   const dir = E.dir;

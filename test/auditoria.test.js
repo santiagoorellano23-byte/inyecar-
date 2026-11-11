@@ -38,7 +38,7 @@ test('presupuesto: respuesta perdida después de guardar, reintento único y con
 
 test('altas: recepción, compra recibida y turno reutilizan el registro sin duplicar stock ni ingreso', async () => {
   const repetir = async (ruta, cuerpo, clave) => {
-    const a = await dueno.post(ruta, cuerpo, { idempotencia: clave });
+    const a = await (ruta==='/api/visitas'?dueno.recibir(cuerpo,{idempotencia:clave}):dueno.post(ruta,cuerpo,{idempotencia:clave}));
     const b = await dueno.post(ruta, cuerpo, { idempotencia: clave });
     assert.equal(b.repetido, true);
     assert.equal(b.id, a.id);

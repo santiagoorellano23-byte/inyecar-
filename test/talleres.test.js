@@ -15,7 +15,7 @@ const PNG = Buffer.from('89504e470d0a1a0a0000000d4948445200000001000000010806000
 
 // Visita lista para retirar, liquidada y con saldo (recibe recepción del taller indicado).
 async function listaConSaldo(quienRecibe, quienEjecuta, patente, importe = '10000') {
-  const { visita: v } = await quienRecibe.post('/api/visitas', {
+  const { visita: v } = await quienRecibe.recibir({
     vehiculo: { patente }, contacto: { nombre: 'Cliente ficticio' }, tipo: 'service', motivo: 'Prueba de regla', km: '1000',
     autorizacion: { persona: 'Cliente ficticio', importe, canal: 'presencial' }
   });
@@ -77,7 +77,7 @@ test('Dos talleres con la misma patente no comparten búsquedas, clientes, traba
   const { vehiculos: [vn] } = await norte.get('/api/buscar?q=AE482KJ');
   // La visita de prueba abierta se anula (sin dinero) para registrar un trabajo completo con cobro.
   if (vn.visitaAbierta) await norte.post(`/api/visitas/${vn.visitaAbierta.id}/anular`, { motivo: 'Prueba: se reemplaza por un service' });
-  const { visita: v } = await norte.post('/api/visitas', {
+  const { visita: v } = await norte.recibir({
     vehiculoId: vn.id, tipo: 'service', motivo: 'Service Norte', km: '21000',
     autorizacion: { persona: 'Pedro Gómez (ficticio)', importe: '7000', canal: 'presencial' }
   });

@@ -1,6 +1,6 @@
 // Proveedores: contacto y notas.
-import { get, post, put } from '../api.js?v=0.5.0';
-import { esc, icono, campo, alEnviar, toast } from '../ui.js?v=0.5.0';
+import { get, post, put } from '../api.js?v=0.6.0-rc.3';
+import { esc, icono, campo, alEnviar, toast } from '../ui.js?v=0.6.0-rc.3';
 
 export default async function proveedores({ app }) {
   const { proveedores: lista } = await get('/api/proveedores');

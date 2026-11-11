@@ -23,7 +23,7 @@ function pantalla(v) {
   }
 }
 async function lista(patente, importe = '10000') {
-  const { visita: v } = await c.post('/api/visitas', {
+  const { visita: v } = await c.recibir({
     vehiculo: { patente }, contacto: { nombre: 'Cliente ficticio' }, tipo: 'service', motivo: 'Regresion', km: '1000',
     autorizacion: { persona: 'Cliente ficticio', importe, canal: 'presencial' }
   });
@@ -57,7 +57,7 @@ test('Entrega bloqueada hasta liquidar; luego exige confirmar deuda o pagar', as
 });
 
 test('Una visita sin trabajos cobrables puede entregarse sin liquidacion', async () => {
-  const { visita: v } = await c.post('/api/visitas', { vehiculo: { patente: 'REG003' }, contacto: { nombre: 'Cliente ficticio' }, tipo: 'revision', motivo: 'Consulta sin cargo', sinKm: true });
+  const { visita: v } = await c.recibir({ vehiculo: { patente: 'REG003' }, contacto: { nombre: 'Cliente ficticio' }, tipo: 'revision', motivo: 'Consulta sin cargo', sinKm: true });
   await d.post(`/api/visitas/${v.id}/control`, { resultado: 'no_reproducido', como: 'Prueba sin falla' });
   await c.post(`/api/visitas/${v.id}/lista`, {});
   const { visita } = await c.post(`/api/visitas/${v.id}/entrega`, { pendientesInformados: true });

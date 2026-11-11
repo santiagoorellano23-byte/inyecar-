@@ -1,7 +1,8 @@
 // Mostrador: ventas sin visita. El stock se descuenta una vez; anular o devolver corrige stock y dinero con movimientos.
-import { get, post } from '../api.js?v=0.5.0';
-import {categoriaDe,categoriasPresentes,normalizar} from '../seleccion-rapida.js?v=0.5.0';
-import { esc, icono, pesos, cant, fecha, fechaHora, chip, campo, alEnviar, toast, confirmar, aviso, MEDIOS, aEntradaDinero, numeroEntrada, revisarPago } from '../ui.js?v=0.5.0';
+import { get, post } from '../api.js?v=0.6.0-rc.3';
+import {entrada} from '../movimiento.js?v=0.6.0-rc.3';
+import {categoriaDe,categoriasPresentes,normalizar} from '../seleccion-rapida.js?v=0.6.0-rc.3';
+import { esc, icono, pesos, cant, fecha, fechaHora, chip, campo, alEnviar, toast, confirmar, aviso, MEDIOS, aEntradaDinero, numeroEntrada, revisarPago } from '../ui.js?v=0.6.0-rc.3';
 
 export default async function mostrador({ params, app, query }) {
   if(params.id)return detalle(params.id,app);
@@ -52,6 +53,7 @@ export default async function mostrador({ params, app, query }) {
       cont.insertAdjacentHTML('beforeend',`<div class="pos-linea" data-linea data-articulo="${a?.id||''}" data-descripcion="${esc(nombre)}"><h3>${esc(nombre)}</h3><div class="fila-campos">${campo({nombre:'cantidad',etiqueta:a?.unidad?`Cant. (${a.unidad})`:'Cantidad',valor:'1',attrs:'inputmode="decimal"'})}${campo({nombre:'precio',etiqueta:'Precio unitario',valor:a?aEntradaDinero(a.precio_venta):manual.precio,attrs:'inputmode="decimal"'})}<button class="btn btn-texto" type="button" data-quitar aria-label="Quitar ${esc(nombre)}">${icono('x')}</button></div></div>`);
       const fila=cont.lastElementChild;fila.querySelector('[data-quitar]').onclick=()=>{fila.remove();total();f.dataset.sucio='1';if(!cont.children.length)cont.innerHTML='<p class="small muted" data-carrito-vacio>Elegí artículos de la lista para comenzar.</p>';};
       total();f.dataset.sucio='1';
+      entrada(fila.querySelector('h3'));
     };
     f.querySelectorAll('[data-agregar]').forEach(b=>b.onclick=()=>agregar(activos.find(a=>a.id===Number(b.dataset.agregar))));
     f.querySelector('[data-manual]').onclick=()=>{const detalle=f.elements.manualDetalle.value.trim(),precio=f.elements.manualPrecio.value;if(!detalle||!Number.isFinite(numeroEntrada(precio))||numeroEntrada(precio)<=0){f.querySelector('[data-manual-error]').textContent='Completá el detalle y un precio mayor a cero.';return;}agregar(null,{detalle,precio});f.elements.manualDetalle.value='';f.elements.manualPrecio.value='';};

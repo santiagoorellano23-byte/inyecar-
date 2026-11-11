@@ -8,6 +8,7 @@ import { exigir, puede } from '../permisos.js';
 import { delTaller } from '../datos.js';
 import { ErrorUsuario, falla, requerido, opcional, texto, normTexto, isoAhora, idEntero } from '../util.js';
 import { carpetaArchivos } from '../config.js';
+import {claveIngreso,TIPOS_FOTO_INGRESO} from '../estado-ingreso.js';
 
 const TIPOS = {
   'image/jpeg': { ext: 'jpg', firma: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
@@ -55,6 +56,24 @@ export function enviarArchivo(res, adj, { descargar = false } = {}) {
 }
 
 export default function rutas(r) {
+  r.post('/api/recepcion/fotos',ctx=>{
+    exigir(ctx.usuario,'visita.recibir');
+    const {clave,tipo,token}=ctx.query;
+    if(!claveIngreso(clave)||!claveIngreso(token)||!TIPOS_FOTO_INGRESO.includes(tipo))falla('Reabrí la recepción y elegí el tipo de foto.','fotosIngreso');
+    if(!['image/jpeg','image/png','image/webp'].includes(String(ctx.req.headers['content-type']||'').split(';')[0].trim().toLowerCase()))falla('Elegí una foto JPG, PNG o WEBP.','fotosIngreso');
+    const n=uno(ctx.db,'SELECT COUNT(*) n FROM adjuntos WHERE taller_id=? AND creado_por=? AND ingreso_clave=?',ctx.taller.id,ctx.usuario.id,clave).n;
+    if(n>=36)falla('Este borrador ya tiene muchas fotos preparadas. Iniciá una nueva recepción y elegí solo las necesarias.','fotosIngreso');
+    const id=guardarArchivo(ctx,{ambito:'visita',descripcion:`Foto de ingreso en preparación · ${tipo}`});
+    ejecutar(ctx.db,'UPDATE adjuntos SET ingreso_clave=?,ingreso_tipo=?,ingreso_token=? WHERE taller_id=? AND id=?',clave,tipo,token,ctx.taller.id,id);
+    ctx.auditar('Foto de ingreso preparada (todavía sin orden)','adjunto',id,tipo);
+    return {id,tipo};
+  },{archivo:true});
+
+  r.get('/api/recepcion/fotos',ctx=>{
+    exigir(ctx.usuario,'visita.recibir');
+    if(!claveIngreso(ctx.query.clave))falla('No se pudo recuperar ese borrador.');
+    return {fotos:todos(ctx.db,'SELECT id,ingreso_tipo AS tipo,ingreso_token AS token FROM adjuntos WHERE taller_id=? AND creado_por=? AND ingreso_clave=? AND visita_id IS NULL AND archivado_at IS NULL',ctx.taller.id,ctx.usuario.id,ctx.query.clave)};
+  });
   r.post('/api/adjuntos', (ctx) => {
     exigir(ctx.usuario, 'adjuntos.subir');
     const ambito = ctx.query.ambito === 'vehiculo' ? 'vehiculo' : 'visita';
@@ -83,6 +102,7 @@ export default function rutas(r) {
   r.post('/api/adjuntos/:id/archivar', (ctx) => {
     exigir(ctx.usuario, 'adjuntos.archivar', 'Solo el dueño archiva archivos.');
     const a = delTaller(ctx.db, 'adjuntos', ctx.taller.id, idEntero(ctx.params.id), 'No encontramos ese archivo.');
+    if(a.ingreso_tipo&&a.visita_id)falla('Esta foto forma parte del estado registrado al ingresar. Se conserva en la orden; agregá una nota si necesitás aclararla.');
     const motivo = requerido(ctx.cuerpo.motivo, 'Escribí por qué se archiva.', 'motivo', 300);
     ejecutar(ctx.db, 'UPDATE adjuntos SET archivado_at = ?, archivado_motivo = ? WHERE id = ?', isoAhora(), motivo, a.id);
     ctx.auditar('Archivo archivado (no se borra)', a.visita_id ? 'visita' : 'adjunto', a.visita_id || a.id, motivo);

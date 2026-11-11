@@ -6,6 +6,8 @@ El producto recorre recibir → revisión → presupuesto versionado y respuesta
 
 ## Compromisos durables
 
+- Desde la candidata local 0.6.0-rc.3, todo ingreso nuevo registra fotos de tablero y exterior en el paso2; daños previos requieren detalle fotográfico y observación. El servidor exige el registro, lo vincula a la orden y conserva el original. Órdenes anteriores no reciben información retroactiva. Contrato en docs/FOTOS-INGRESO.md.
+
 - Autorizado, realizado, liquidado y cobrado son dimensiones distintas. Recibido no significa colocado; listo no significa entregado; desconocido no significa cero.
 - Una modificación de algo autorizado crea una nueva versión y requiere su propia respuesta. Conservar antecedentes y documentos emitidos; lo postergado no se cobra.
 - Guardar es explícito. Las correcciones crean movimientos o versiones con motivo; no borrar registros de dinero, stock ni documentos. Mostrar destinatario, importe, medio y efecto antes de operaciones de dinero.
@@ -23,4 +25,3 @@ Dirección aprobada: A «Paso a paso», únicamente Más de B. Contrato y límit
 La verificación funcional y visual corresponde al informe de QA y su evidencia. Emular teléfono no valida teclado, áreas seguras ni cámara en un dispositivo físico; QR con cámara requiere HTTPS y soporte del navegador.
 
 Fuentes: README.md, PROJECT.md, CLAUDE.md, docs/DECISIONES.md, docs/MATRIZ.md y contrato vigente. Las versiones y afirmaciones históricas de estos documentos no acreditan el estado publicado de la candidata.
-

@@ -1,8 +1,8 @@
 // Hoy en el taller: autos presentes, situación, responsable, retiro y próximo paso.
-import { get } from '../api.js?v=0.5.0';
-import {leerBorrador,borrarBorrador} from '../recepcion-modelo.js?v=0.5.0';
-import {grupoHoy,estadoDimension} from '../orden-presentacion.js?v=0.5.0';
-import { esc, icono, patente, nombreAuto, chipSituacion, cuando, fecha, hora, haceCuanto, hoyLocal, aLocal } from '../ui.js?v=0.5.0';
+import { get } from '../api.js?v=0.6.0-rc.3';
+import {leerBorrador,borrarBorrador} from '../recepcion-modelo.js?v=0.6.0-rc.3';
+import {grupoHoy,estadoDimension} from '../orden-presentacion.js?v=0.6.0-rc.3';
+import { esc, icono, patente, nombreAuto, chipSituacion, cuando, fecha, hora, haceCuanto, hoyLocal, aLocal } from '../ui.js?v=0.6.0-rc.3';
 
 const GRUPOS = [
   ['todos', 'autos presentes', null],
@@ -88,7 +88,9 @@ export default async function hoy({ app, query }) {
           </div>
         </div>
         ${borrador?`<section class="borrador-recepcion"><h2>Recepción sin terminar</h2><p>${esc(borrador.campos?.patente||'Auto en preparación')}. Es un borrador: todavía no cuenta como recibido.</p><div class="acciones"><a class="btn" href="#/recibir">Continuar</a>${!borrador.pendiente?'<button type="button" class="btn btn-texto" data-descartar-borrador>Descartar</button>':''}</div></section>`:''}
-        <nav class="hoy-segmentos" aria-label="Alcance de Hoy"><a href="#/hoy?ver=todos" ${filtro!=='mias'?'aria-current="page"':''}>Todo el taller · ${d.presentes.length}</a><a href="#/hoy?ver=mias" ${filtro==='mias'?'aria-current="page"':''}>Asignado a mí · ${d.mias?.length||0}</a></nav>
+        <nav class="hoy-segmentos" aria-label="Alcance de Hoy">
+          ${[['todos','Todo el taller',d.presentes.length],['mias','Asignado a mí',d.mias?.length||0]].map(([ver,nombre,cantidad])=>`<a href="#/hoy?ver=${ver}" ${filtro===ver?'aria-current="page"':''}><span class="hoy-segmento__texto"><strong>${nombre}</strong><span>${cantidad} vehículo${cantidad===1?'':'s'}</span></span><span class="hoy-segmento__indicador" aria-hidden="true"></span></a>`).join('')}
+        </nav>
         <section class="prioridades-hoy" aria-label="Pendientes operativos">
           ${operativos.map(([k,t,i])=>`<a href="#/hoy?ver=${k}" ${filtro===k?'aria-current="true"':''}><span>${icono(i)}${t}</span><strong>${pendientes[k]?.length||0}</strong></a>`).join('')}
           <p>Órdenes abiertas; una orden puede aparecer en más de un grupo. Hoy corresponde al horario del taller (${esc((d.zona||'America/Argentina/Mendoza').split('/').at(-1).replaceAll('_',' '))}).</p>
@@ -105,7 +107,7 @@ export default async function hoy({ app, query }) {
           </div>
           <div data-sin-resultados hidden class="panel__cuerpo"><p class="muted">Ninguno de los autos presentes coincide. <button type="button" class="enlace" data-buscar-todos>Buscar en todos los autos del taller</button></p></div>
           ${presentes.length ? `<div class="hoy-tabla solo-escritorio"><table class="tabla-autos" style="margin-top:12px"><thead><tr><th scope="col">Vehículo</th>${['Trabajo','Autorización','Repuestos',...(app.puede('ver.dinero')?['Dinero']:[]),'Vehículo'].map(t=>`<th scope="col">${t}</th>`).join('')}<th scope="col"><span class="sr">Acción</span></th></tr></thead>${filas}</table></div>
-            <div class="hoy-grupos solo-telefono">${tarjetas}</div>` : `<div class="panel__cuerpo"><p class="muted">${filtro === 'todos' ? 'No hay autos en el taller en este momento.' : 'No hay autos en esta situación.'}</p></div>`}
+            <div class="hoy-grupos solo-telefono">${tarjetas}</div>` : `<div class="panel__cuerpo">${filtro==='mias'?'<p><strong>No tenés vehículos asignados</strong></p><p class="muted">Podés ver los autos presentes en «Todo el taller».</p>':`<p class="muted">${filtro === 'todos' ? 'No hay autos en el taller en este momento.' : 'No hay autos en esta situación.'}</p>`}</div>`}
         </section>
         ${d.configurar?.some(x=>!x.hecho)?`<details class="setup-compact"><summary>${icono('ajustes')} Configuración pendiente · ${d.configurar.filter(x=>!x.hecho).length} ${icono('abajo')}</summary><ol class="pasos-inicio">${d.configurar.map(x=>`<li class="${x.hecho?'hecho':''}">${x.hecho?esc(x.texto):`<a href="#/${x.ruta}">${esc(x.texto)}</a>`}</li>`).join('')}</ol></details>`:''}
         ${responsables.size?`<details class="mas"><summary>Órdenes abiertas por responsable</summary><div class="mas__cuerpo"><p class="muted small">Cantidad de órdenes; no representa horas ni capacidad disponible.</p><dl class="responsables-hoy">${[...responsables].map(([nombre,n])=>`<div><dt>${esc(nombre)}</dt><dd>${n}</dd></div>`).join('')}</dl></div></details>`:''}

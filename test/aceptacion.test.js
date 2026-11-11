@@ -226,7 +226,7 @@ test('Compras y stock: una recepción ingresa una vez; remito y factura no dupli
 });
 
 test('Recibir un auto con datos mínimos y kilómetros desconocidos; lectura menor exige explicación', async () => {
-  const r = await carla.post('/api/visitas', { vehiculo: { patente: 'zz 999 zz' }, contacto: { nombre: 'Cliente Nuevo (prueba)' }, tipo: 'revision', motivo: 'Hace un ruido', sinKm: true });
+  const r = await carla.recibir({ vehiculo: { patente: 'zz 999 zz' }, contacto: { nombre: 'Cliente Nuevo (prueba)' }, tipo: 'revision', motivo: 'Hace un ruido', sinKm: true });
   assert.equal(r.visita.lecturas[0].km, null, 'desconocido no es cero');
   assert.equal(r.visita.vehiculo.patente, 'ZZ 999 ZZ');
   const otra = await carla.pedir('POST', '/api/visitas', { vehiculoId: r.visita.vehiculo.id, tipo: 'revision', motivo: 'x', sinKm: true });

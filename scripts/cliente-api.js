@@ -1,6 +1,7 @@
 // Cliente HTTP mínimo para cargar datos de prueba y para las pruebas automáticas.
 // Usa la API real, así los datos pasan por las mismas reglas y permisos que en el uso diario.
 import crypto from 'node:crypto';
+import {fotosPrueba} from './fotos-prueba.js';
 
 export class ClienteApi {
   constructor(base) { this.base = base; this.cookie = ''; }
@@ -25,6 +26,7 @@ export class ClienteApi {
   }
   get(r) { return this.ok('GET', r); }
   post(r, c, op) { return this.ok('POST', r, c, op); }
+  async recibir(c,op) { c.estadoIngreso ||= await fotosPrueba(this); return this.post('/api/visitas',c,op); }
   put(r, c, op) { return this.ok('PUT', r, c, op); }
   async ingresar(email, clave) { return this.ok('POST', '/api/sesion/ingresar', { email, clave }); }
 }

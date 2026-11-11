@@ -1,6 +1,6 @@
 // Directorio voluntario de talleres del producto.
-import { api } from './api.js?v=0.5.0';
-import { esc } from './ui.js?v=0.5.0';
+import { api } from './api.js?v=0.6.0-rc.3';
+import { esc } from './ui.js?v=0.6.0-rc.3';
 
 const main = document.getElementById('contenido');
 try {

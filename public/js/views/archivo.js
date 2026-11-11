@@ -1,6 +1,6 @@
 // Archivo de documentos emitidos: búsqueda por patente, cliente, número o visita.
-import { get } from '../api.js?v=0.5.0';
-import { esc, icono, fechaHora, chip } from '../ui.js?v=0.5.0';
+import { get } from '../api.js?v=0.6.0-rc.3';
+import { esc, icono, fechaHora, chip } from '../ui.js?v=0.6.0-rc.3';
 
 export default async function archivo({ query, app }) {
   const q = new URLSearchParams();

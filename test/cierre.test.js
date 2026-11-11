@@ -131,7 +131,7 @@ test('Estado del respaldo no cuenta copias incompletas y avisa si la copia es an
 });
 
 test('Una visita puede anularse después de compensar todos sus movimientos, conservando el historial', async () => {
-  let { visita: v } = await recepcion.post('/api/visitas', { vehiculo: { patente: 'CIERRE01' }, contacto: { nombre: 'Prueba ficticia' }, tipo: 'service', motivo: 'Prueba de cierre', sinKm: true, autorizacion: { persona: 'Prueba', importe: '1000', canal: 'presencial' } });
+  let { visita: v } = await recepcion.recibir({ vehiculo: { patente: 'CIERRE01' }, contacto: { nombre: 'Prueba ficticia' }, tipo: 'service', motivo: 'Prueba de cierre', sinKm: true, autorizacion: { persona: 'Prueba', importe: '1000', canal: 'presencial' } });
   for (const l of v.presupuesto.lineas) await dueno.post(`/api/visitas/${v.id}/lineas/${l.id}/realizado`, {});
   await dueno.post(`/api/visitas/${v.id}/control`, { resultado: 'resuelto', como: 'Comprobación ficticia' });
   await recepcion.post(`/api/visitas/${v.id}/liquidar`, {});

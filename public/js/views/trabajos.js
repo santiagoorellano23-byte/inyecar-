@@ -1,6 +1,6 @@
 // Trabajos: visitas abiertas, asignadas a la persona y historial.
-import { get } from '../api.js?v=0.5.0';
-import { esc, icono, patente, nombreAuto, chipSituacion, fecha, cuando } from '../ui.js?v=0.5.0';
+import { get } from '../api.js?v=0.6.0-rc.3';
+import { esc, icono, patente, nombreAuto, chipSituacion, fecha, cuando } from '../ui.js?v=0.6.0-rc.3';
 
 export default async function trabajos({ app, query }) {
   const esMec = app.sesion.usuario.rol === 'mecanico';

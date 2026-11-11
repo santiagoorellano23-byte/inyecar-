@@ -86,7 +86,7 @@ export async function sembrar({ db, base }) {
   // ---------- Etios: historial ----------
   reloj('2025-11-18T09:00');
   const etios = await carla.post('/api/vehiculos', { patente: 'AE 482 KJ', marca: 'Toyota', modelo: 'Etios', version_txt: 'XLS 1.5', anio: 2019, combustible: 'Nafta', color: 'Gris', contacto: { nombre: 'Ana Ferreyra (ficticio)', telefono: '2622 15-55-0142', acepta_avisos: true } });
-  const e1 = (await carla.post('/api/visitas', { vehiculoId: etios.id, tipo: 'revision', motivo: 'Ruido en la parte trasera al pasar lomos de burro.', responsableId: marcosId, km: '71900' })).id;
+  const e1 = (await carla.recibir({ vehiculoId: etios.id, tipo: 'revision', motivo: 'Ruido en la parte trasera al pasar lomos de burro.', responsableId: marcosId, km: '71900' })).id;
   reloj('2025-11-18T11:00');
   await marcos.post(`/api/visitas/${e1}/revision`, { versionActual: 0, estado: 'sin_falla', relato: 'Escucha un golpe atrás en calles de tierra.', hallazgos: 'Sin juego visible en suspensión trasera. Amortiguadores sin pérdidas.', pruebas: 'Prueba de ruta 15 km por calle de tierra y revisión en elevador.' });
   await marcos.post(`/api/visitas/${e1}/control`, { resultado: 'no_reproducido', como: 'Prueba de ruta y revisión en elevador', nota: 'Volver si el ruido aparece de nuevo.' });
@@ -95,7 +95,7 @@ export async function sembrar({ db, base }) {
   await carla.post(`/api/visitas/${e1}/entrega`, { pendientesInformados: true, nota: 'Se le explicó que no se reprodujo el ruido.' });
 
   reloj('2026-05-12T08:30');
-  const e2 = (await carla.post('/api/visitas', { vehiculoId: etios.id, tipo: 'service', motivo: 'Service de aceite y filtros.', responsableId: marcosId, km: '78420', plantillaId: plantillaService, autorizacion: { persona: 'Ana Ferreyra', canal: 'presencial', importe: '60000' } })).id;
+  const e2 = (await carla.recibir({ vehiculoId: etios.id, tipo: 'service', motivo: 'Service de aceite y filtros.', responsableId: marcosId, km: '78420', plantillaId: plantillaService, autorizacion: { persona: 'Ana Ferreyra', canal: 'presencial', importe: '60000' } })).id;
   reloj('2026-05-12T10:00');
   let ve2 = (await marcos.get(`/api/visitas/${e2}`)).visita;
   for (const t of ve2.tareas) await marcos.post(`/api/tareas/${t.id}`, t.descripcion.startsWith('Revisar filtro de aire') ? { estado: 'no_aplica', explicacion: 'Filtro de aire cambiado hace 2.000 km según factura del cliente.' } : { estado: 'hecho' });
@@ -114,7 +114,7 @@ export async function sembrar({ db, base }) {
   // ---------- Etios: visita actual ----------
   const retiroHoy = `${hoy}T18:00`;
   reloj(hace(26));
-  const e3 = (await carla.post('/api/visitas', {
+  const e3 = (await carla.recibir({
     vehiculoId: etios.id, tipo: 'revision', motivo: 'Golpe en la parte trasera al pasar lomos de burro. Pide revisar también los frenos.', responsableId: marcosId,
     retiro: retiroHoy, km: '84150', autorizacion: { revisionConCosto: true, persona: 'Ana Ferreyra', canal: 'presencial', importe: '25000' }
   })).id;
@@ -160,14 +160,14 @@ export async function sembrar({ db, base }) {
   // Cronos: en revisión
   reloj(hace(2));
   const cronos = await auto('AD 913 LP', 'Fiat', 'Cronos', 'Drive 1.3', 'Laura Méndez (ficticio)', '2622 15-55-0111');
-  const vc = (await carla.post('/api/visitas', { vehiculoId: cronos, tipo: 'revision', motivo: 'Ruido en la caja al pasar cambios.', responsableId: julianId, km: '45210' })).id;
+  const vc = (await carla.recibir({ vehiculoId: cronos, tipo: 'revision', motivo: 'Ruido en la caja al pasar cambios.', responsableId: julianId, km: '45210' })).id;
   reloj(hace(1.5));
   await julian.post(`/api/visitas/${vc}/revision`, { versionActual: 0, estado: 'en_revision', relato: 'Ruido al pasar de segunda a tercera, más en frío.', hallazgos: 'Nivel de aceite de caja correcto. Falta prueba de ruta en frío.' });
 
   // Gol: presupuesto sin respuesta
   reloj(hace(5));
   const gol = await auto('NKO 245', 'Volkswagen', 'Gol', 'Trend 1.6', 'Diego Sosa (ficticio)', '2622 15-55-0122');
-  const vg = (await carla.post('/api/visitas', { vehiculoId: gol, tipo: 'revision', motivo: 'Pierde refrigerante y levanta temperatura.', responsableId: marcosId, km: '132400', retiro: null, autorizacion: { revisionConCosto: true, persona: 'Diego Sosa', importe: '25000' } })).id;
+  const vg = (await carla.recibir({ vehiculoId: gol, tipo: 'revision', motivo: 'Pierde refrigerante y levanta temperatura.', responsableId: marcosId, km: '132400', retiro: null, autorizacion: { revisionConCosto: true, persona: 'Diego Sosa', importe: '25000' } })).id;
   reloj(hace(4));
   await marcos.post(`/api/visitas/${vg}/revision`, { versionActual: 0, estado: 'confirmado', confirma: true, relato: 'Pierde líquido y la aguja sube en ruta.', hallazgos: 'Pérdida por el sello de la bomba de agua.', pruebas: 'Prueba de presión del circuito de refrigeración.', diagnostico: 'Bomba de agua con pérdida por el sello.', recomendacion: 'Cambiar bomba de agua y refrigerante.' });
   let vgv = (await marcos.get(`/api/visitas/${vg}`)).visita;
@@ -178,7 +178,7 @@ export async function sembrar({ db, base }) {
   // 208: service en curso
   reloj(hace(3));
   const p208 = await auto('AE 771 BD', 'Peugeot', '208', 'Allure 1.6', 'Mariana López (ficticio)', '2622 15-55-0144');
-  const v208 = (await carla.post('/api/visitas', { vehiculoId: p208, tipo: 'service', motivo: 'Service de los 40.000 km.', responsableId: julianId, km: '40120', plantillaId: plantillaService, retiro: `${hoy}T17:00`, autorizacion: { persona: 'Mariana López', canal: 'presencial', importe: '60000' } })).id;
+  const v208 = (await carla.recibir({ vehiculoId: p208, tipo: 'service', motivo: 'Service de los 40.000 km.', responsableId: julianId, km: '40120', plantillaId: plantillaService, retiro: `${hoy}T17:00`, autorizacion: { persona: 'Mariana López', canal: 'presencial', importe: '60000' } })).id;
   reloj(hace(1));
   const t208 = (await julian.get(`/api/visitas/${v208}`)).visita.tareas;
   await julian.post(`/api/tareas/${t208[0].id}`, { estado: 'hecho' });
@@ -187,7 +187,7 @@ export async function sembrar({ db, base }) {
   // Onix: listo para retirar, liquidado y con pago parcial
   reloj(hace(27));
   const onix = await auto('AC 552 MZ', 'Chevrolet', 'Onix', 'LT 1.4', 'Silvia Torres (ficticio)', '2622 15-55-0166');
-  const vo = (await carla.post('/api/visitas', { vehiculoId: onix, tipo: 'service', motivo: 'Service anual.', responsableId: marcosId, km: '61050', plantillaId: plantillaService, retiro: local(redondear(new Date(real.getTime() + 3600e3))), autorizacion: { persona: 'Silvia Torres', importe: '60000' } })).id;
+  const vo = (await carla.recibir({ vehiculoId: onix, tipo: 'service', motivo: 'Service anual.', responsableId: marcosId, km: '61050', plantillaId: plantillaService, retiro: local(redondear(new Date(real.getTime() + 3600e3))), autorizacion: { persona: 'Silvia Torres', importe: '60000' } })).id;
   reloj(hace(20));
   for (const t of (await marcos.get(`/api/visitas/${vo}`)).visita.tareas) await marcos.post(`/api/tareas/${t.id}`, { estado: 'hecho' });
   await marcos.post(`/api/visitas/${vo}/productos`, { descripcion: 'Aceite de motor (especificación según manual)', cantidad: '3,5', unidad: 'L', articuloId: art.aceite });
@@ -216,7 +216,7 @@ export async function sembrar({ db, base }) {
   // ---------- Taller Norte: misma patente, otro auto y otro dueño (debe quedar aislado) ----------
   reloj(hace(10));
   const vn = await norte.post('/api/vehiculos', { patente: 'AE482KJ', marca: 'Toyota', modelo: 'Etios', contacto: { nombre: 'Pedro Gómez (ficticio)', telefono: '2622 15-55-0700' } });
-  await norte.post('/api/visitas', { vehiculoId: vn.id, tipo: 'revision', motivo: 'Revisión general (taller Norte).', km: '20000' });
+  await norte.recibir({ vehiculoId: vn.id, tipo: 'revision', motivo: 'Revisión general (taller Norte).', km: '20000' });
 
   delete process.env.INYECAR_RELOJ;
   return { tallerA: A.tallerId, tallerB: B.tallerId, etios: { vehiculo: etios.id, visitaActual: e3 }, articulos: art };

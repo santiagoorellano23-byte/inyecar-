@@ -1,5 +1,7 @@
 // Ayudas de interfaz: formato, estados con palabra e ícono, formularios con errores claros, avisos y confirmaciones.
-import { icono } from './iconos.js?v=0.5.0';
+import { icono } from './iconos.js?v=0.6.0-rc.3';
+import { iniciarMovimiento, entrada, retirar } from './movimiento.js?v=0.6.0-rc.3';
+iniciarMovimiento();
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const attr = esc;
@@ -195,6 +197,7 @@ export function toast(mensaje, { error = false, accion = null, duracion = 6000 }
   t.setAttribute('aria-atomic', 'true');
   t.innerHTML = `${icono(error ? 'alerta' : 'check')}<div>${esc(mensaje)}</div>`;
   const focoAnterior = document.activeElement;
+  const desdeEnvio = !!focoAnterior?.closest?.('form[data-enviando]');
   let timer, inicio, restante = error ? duracion * 2 : duracion;
   let sobre = false;
   const pausar = () => {
@@ -204,10 +207,17 @@ export function toast(mensaje, { error = false, accion = null, duracion = 6000 }
     restante = Math.max(0, restante - (performance.now() - inicio));
   };
   const quitar = () => {
+    if (t.dataset.retirando) return;
     clearTimeout(timer);
     const teniaFoco = t.contains(document.activeElement);
-    t.remove();
-    if (teniaFoco && focoAnterior?.isConnected) focoAnterior.focus({preventScroll:true});
+    if (teniaFoco) {
+      // Un guardado puede reemplazar ese botón justo después de cerrar el aviso.
+      // Deshabilitar el botón durante el envío puede haber dejado el foco en body.
+      const util = focoAnterior?.isConnected && focoAnterior !== document.body && focoAnterior !== document.documentElement;
+      const destino = !desdeEnvio && util ? focoAnterior : document.getElementById('contenido');
+      destino?.focus({preventScroll:true});
+    }
+    retirar(t);
   };
   const continuar = () => {
     // Los avisos con acción quedan disponibles hasta que la persona decida.
@@ -232,10 +242,11 @@ export function toast(mensaje, { error = false, accion = null, duracion = 6000 }
   cerrar.onclick = quitar;
   t.appendChild(cerrar);
   cont.appendChild(t);
+  entrada(t, {tipo:'aviso'});
   const max=matchMedia('(max-width:719px)').matches?1:2;
   // No descartar acciones pendientes ni quitar el control que tiene el foco.
-  while (cont.children.length > max) {
-    const viejo = [...cont.children].find(el => el !== t && !el.dataset.conAccion && !el.contains(document.activeElement));
+  while ([...cont.children].filter(el => !el.dataset.retirando).length > max) {
+    const viejo = [...cont.children].find(el => el !== t && !el.dataset.retirando && !el.dataset.conAccion && !el.contains(document.activeElement));
     if (!viejo) break;
     viejo.dispatchEvent(new Event('aviso-descartar'));
   }
