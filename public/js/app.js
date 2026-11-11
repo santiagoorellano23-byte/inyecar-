@@ -128,8 +128,11 @@ function armarEsqueleto() {
       </div>
     </aside>
     <header class="topbar">
-      ${marcaHTML(s.taller)}${selectorTema()}
-      <a class="topbar__usuario" href="#/mas" aria-label="${esc(u.nombre)}, ${esc(u.rolTexto)}. Ver tu sesión y salir"><span>${esc(primerNombre)}${corto !== primerNombre ? `<br><small>${esc(corto)}</small>` : ''}</span></a>
+      ${marcaHTML(s.taller)}${s.taller.demo ? '<span class="topbar__demo" title="Personas, autos e importes inventados para mostrar el sistema">DEMO<span class="topbar__demo-detalle"> · datos ficticios</span></span>' : ''}
+      <div class="topbar__acciones">
+        ${selectorTema()}<a class="topbar__ayuda" href="#/ayuda" aria-label="Ayuda" title="Ayuda">${icono('ayuda')}</a><span class="topbar__sep" aria-hidden="true"></span>
+        <a class="topbar__usuario" href="#/mas" aria-label="${esc(u.nombre)}, ${esc(u.rolTexto)}. Ver tu sesión y salir"><span class="topbar__quien"><strong>${esc(primerNombre)}</strong><small>${esc(corto !== primerNombre ? corto : s.taller.nombre)}</small></span><span class="avatar" aria-hidden="true">${esc(iniciales || '·')}</span></a>
+      </div>
     </header>
     ${s.taller.demo ? '<p class="demo-movil">Demostración · datos ficticios</p>' : ''}
     <div class="workspacebar"><span>Panel del taller <span class="muted">/</span> <strong data-ruta-titulo>Hoy</strong></span>${s.taller.demo ? '<span class="preview-label">Demostración · datos ficticios</span>' : ''}${selectorTema()}<a href="#/ayuda">${icono('ayuda')}Ayuda</a></div>
