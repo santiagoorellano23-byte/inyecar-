@@ -191,7 +191,7 @@ El sistema compartido conserva esquinas discretas para controles y paneles. Rece
 
 ### Movimiento e interacción (11/11/2026)
 
-Recepción ampliada en candidata0.6.0-rc.3 a siete pasos. Paso2 Estado al ingresar: fotos privadas con previsualización, descripción, recuperación del borrador y estados de carga/error explícitos; tablero/exterior obligatorios y detalle obligatorio si hay daño previo. Foco en el encabezado de cada paso, errores con enlace al dato y confirmación renovada al cambiar evidencia. El mismo registro se consulta en resumen, historial y entrega; no sustituye diagnóstico ni autorización. Ver docs/FOTOS-INGRESO.md.
+Recepción ampliada en la versión 0.6.0 a siete pasos. Paso2 Estado al ingresar: fotos privadas con previsualización, descripción, recuperación del borrador y estados de carga/error explícitos; tablero/exterior obligatorios y detalle obligatorio si hay daño previo. Foco en el encabezado de cada paso, errores con enlace al dato y confirmación renovada al cambiar evidencia. El mismo registro se consulta en resumen, historial y entrega; no sustituye diagnóstico ni autorización. Ver docs/FOTOS-INGRESO.md.
 
 Última capa: public/css/movimiento.css, con escala120/180/240ms y curvas compartidas con public/js/movimiento.js. Entradas explícitas y cancelables; hover solo con puntero fino. Datos, filas, patentes e importes permanecen estables. No reanimar guardados ni resultados al escribir. Foco inmediato de teclado, cancelación al activar movimiento reducido y fallback sin WAAPI. Avisos salen sin demorar acciones ni dejar foco en controles eliminados. Mantener cierre nativo de confirmaciones. Cobertura y límites en docs/MOVIMIENTO-INYECAR.md.
 

@@ -1,6 +1,6 @@
 // Reportes: indicadores con definición visible, gráficos solo donde explican algo y exportación coherente.
-import { get } from '../api.js?v=0.6.0-rc.3';
-import { esc, icono, pesos, cant, campo, chip, aviso, fecha } from '../ui.js?v=0.6.0-rc.3';
+import { get } from '../api.js?v=0.6.0';
+import { esc, icono, pesos, cant, campo, chip, aviso, fecha } from '../ui.js?v=0.6.0';
 
 export default async function reportes({ query, app }) {
   const q = new URLSearchParams();

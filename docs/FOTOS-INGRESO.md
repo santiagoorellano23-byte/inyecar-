@@ -1,4 +1,4 @@
-# Estado y fotos al ingresar · candidata local 0.6.0-rc.3
+# Estado y fotos al ingresar · versión 0.6.0
 
 Pedido del 11/11/2026: registrar el estado previo para poder consultarlo al entregar el auto. Implementación local sobre la candidata de movimiento; no publicada en Hostinger ni GitHub en esta intervención.
 
@@ -31,6 +31,6 @@ Migración aditiva: `006_fotos_ingreso.sql`, columnas de preparación sobre adju
 
 Prueba manual en la demo aislada: patente ficticia FOTO061QA, orden número 9, id 10, tres capturas ficticias (no fotos reales), bloqueo sin fotos, bloqueo de daño sin detalle, recuperación tras recarga, confirmación única y consulta en historial. Capturas y matriz de tamaños en la misma carpeta de evidencia. No se escribieron datos en producción.
 
-Demo: `http://127.0.0.1:3137/?v=0.6.0-rc.3#/recibir`. Lanzador local: ABRIR-DEMO-MOVIMIENTO.cmd; reutiliza los datos ficticios. Producción/GitHub mantienen el último estado confirmado 0.5.0, no comprobado de nuevo en esta tarea. La candidata incluye también el movimiento local previo.
+Demo: `http://127.0.0.1:3137/?v=0.6.0#/recibir`. Lanzador local: ABRIR-DEMO-MOVIMIENTO.cmd; reutiliza los datos ficticios. Producción/GitHub mantienen el último estado confirmado 0.5.0, no comprobado de nuevo en esta tarea. La candidata incluye también el movimiento local previo.
 
 Antes de publicar: respaldo real nuevo y restauración aislada, paquete verificado, conservación de variables de entorno y carpeta externa de datos, prueba tras despliegue. Mantener los cinco administradores y el cron temporal por minuto por decisión explícita del usuario. No copiar seed, fixtures, evidencia ni bases de la demo al alojamiento.

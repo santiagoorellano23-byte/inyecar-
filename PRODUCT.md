@@ -6,7 +6,7 @@ El producto recorre recibir → revisión → presupuesto versionado y respuesta
 
 ## Compromisos durables
 
-- Desde la candidata local 0.6.0-rc.3, todo ingreso nuevo registra fotos de tablero y exterior en el paso2; daños previos requieren detalle fotográfico y observación. El servidor exige el registro, lo vincula a la orden y conserva el original. Órdenes anteriores no reciben información retroactiva. Contrato en docs/FOTOS-INGRESO.md.
+- Desde la versión 0.6.0, todo ingreso nuevo registra fotos de tablero y exterior en el paso2; daños previos requieren detalle fotográfico y observación. El servidor exige el registro, lo vincula a la orden y conserva el original. Órdenes anteriores no reciben información retroactiva. Contrato en docs/FOTOS-INGRESO.md.
 
 - Autorizado, realizado, liquidado y cobrado son dimensiones distintas. Recibido no significa colocado; listo no significa entregado; desconocido no significa cero.
 - Una modificación de algo autorizado crea una nueva versión y requiere su propia respuesta. Conservar antecedentes y documentos emitidos; lo postergado no se cobra.

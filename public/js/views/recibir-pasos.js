@@ -1,9 +1,9 @@
-import {get,post,claveDeEnvio} from '../api.js?v=0.6.0-rc.3';
-import {esc,icono,patente,nombreAuto,fecha,campo,casilla,opcionesRadio,leerForm,alEnviar,mostrarError,limpiarErrores,toast} from '../ui.js?v=0.6.0-rc.3';
-import {enlazarModelos} from './autos.js?v=0.6.0-rc.3';
-import {entrada,detenerMovimiento} from '../movimiento.js?v=0.6.0-rc.3';
-import {MARCAS,MOTIVOS,material,resumenMotivos,leerBorrador,guardarBorrador,borrarBorrador,borradorPara,ultimaLectura,visitaRelacionada} from '../recepcion-modelo.js?v=0.6.0-rc.3';
-import {enlazarFotosIngreso} from '../estado-ingreso.js?v=0.6.0-rc.3';
+import {get,post,claveDeEnvio} from '../api.js?v=0.6.0';
+import {esc,icono,patente,nombreAuto,fecha,campo,casilla,opcionesRadio,leerForm,alEnviar,mostrarError,limpiarErrores,toast} from '../ui.js?v=0.6.0';
+import {enlazarModelos} from './autos.js?v=0.6.0';
+import {entrada,detenerMovimiento} from '../movimiento.js?v=0.6.0';
+import {MARCAS,MOTIVOS,material,resumenMotivos,leerBorrador,guardarBorrador,borrarBorrador,borradorPara,ultimaLectura,visitaRelacionada} from '../recepcion-modelo.js?v=0.6.0';
+import {enlazarFotosIngreso} from '../estado-ingreso.js?v=0.6.0';
 
 const PASOS=['Auto','Estado al ingresar','Motivo','Kilometraje','Autorización','Datos opcionales','Revisión'];
 const falla=(message,campo)=>Object.assign(new Error(message),{campo});

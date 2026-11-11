@@ -1,6 +1,6 @@
 // Autos y clientes: búsqueda por patente, nombre o teléfono; alta de auto con datos mínimos.
-import { get, post } from '../api.js?v=0.6.0-rc.3';
-import { esc, icono, patente, nombreAuto, fecha, campo, alEnviar, toast, confirmar } from '../ui.js?v=0.6.0-rc.3';
+import { get, post } from '../api.js?v=0.6.0';
+import { esc, icono, patente, nombreAuto, fecha, campo, alEnviar, toast, confirmar } from '../ui.js?v=0.6.0';
 
 export function opcionesMarcas() {
   const c = window.INYECAR_CATALOGOS || { marcas: [], modelos: {} };

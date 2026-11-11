@@ -1,6 +1,6 @@
 // Calculadora de mano de obra: horas × valor hora del taller, con antecedentes propios. Funciona sin IA.
-import { get } from '../api.js?v=0.6.0-rc.3';
-import { esc, icono, pesos, cant, fecha, campo, aviso, copiar, aEntradaDinero } from '../ui.js?v=0.6.0-rc.3';
+import { get } from '../api.js?v=0.6.0';
+import { esc, icono, pesos, cant, fecha, campo, aviso, copiar, aEntradaDinero } from '../ui.js?v=0.6.0';
 
 export default async function calculadora({ query, app }) {
   const cat = await get('/api/catalogos');

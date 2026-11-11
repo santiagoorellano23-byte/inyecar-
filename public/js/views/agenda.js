@@ -1,7 +1,7 @@
 // Agenda: solicitudes online por confirmar, turnos de la semana por día y alta de turnos.
-import { get, post, claveDeEnvio } from '../api.js?v=0.6.0-rc.3';
-import { esc, icono, chip, fecha, campo, alEnviar, toast, confirmar, aviso, hoyLocal, casilla } from '../ui.js?v=0.6.0-rc.3';
-import { qrSVG } from '../qr-util.js?v=0.6.0-rc.3';
+import { get, post, claveDeEnvio } from '../api.js?v=0.6.0';
+import { esc, icono, chip, fecha, campo, alEnviar, toast, confirmar, aviso, hoyLocal, casilla } from '../ui.js?v=0.6.0';
+import { qrSVG } from '../qr-util.js?v=0.6.0';
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const EST = { solicitado: ['Sin confirmar', 'violeta', 'reloj'], confirmado: ['Confirmado', 'verde', 'check'], cancelado: ['Cancelado', '', 'ban'], no_asistio: ['No vino', 'rojo', 'alerta'], ingresado: ['Auto recibido', 'teal', 'llave'] };

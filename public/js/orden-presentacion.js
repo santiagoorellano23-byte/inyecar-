@@ -1,6 +1,6 @@
-import {esc,icono,fecha,km} from './ui.js?v=0.6.0-rc.3';
-import {resumenMotivos} from './recepcion-modelo.js?v=0.6.0-rc.3';
-import {vistaEstadoIngreso} from './estado-ingreso.js?v=0.6.0-rc.3';
+import {esc,icono,fecha,km} from './ui.js?v=0.6.0';
+import {resumenMotivos} from './recepcion-modelo.js?v=0.6.0';
+import {vistaEstadoIngreso} from './estado-ingreso.js?v=0.6.0';
 export const grupoHoy=v=>v.lista_at?'listas':v.operacion?.autorizacion||v.operacion?.repuestos?'bloqueadas':'hacer';
 export const puedeOfrecerCobro=v=>!v.anulada_at&&!!v.totales&&(v.totales.saldo>0||!v.totales.liquidado&&v.totales.autorizado>v.totales.cobrado);
 export function estadoDimension(k,t){const color=/Esperando|parcial|Saldo pendiente/.test(t)?'ambar':/Aprobado|Pagado|Completo|Terminado|Listo/.test(t)?'verde':/revisión|Revisado|trabajo|Control/i.test(t)?'teal':'';return `<span class="estado ${color?'estado--'+color:''}" title="${esc(k)}">${esc(t)}</span>`;}

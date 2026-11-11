@@ -1,6 +1,6 @@
 // Pendientes: próximos services y trabajos que el cliente dejó para después. Avisos preparados a mano.
-import { get, post } from '../api.js?v=0.6.0-rc.3';
-import { esc, icono, patente, nombreAuto, chip, fecha, fechaHora, km, pesos, campo, alEnviar, toast, confirmar, aviso, copiar, hoyLocal } from '../ui.js?v=0.6.0-rc.3';
+import { get, post } from '../api.js?v=0.6.0';
+import { esc, icono, patente, nombreAuto, chip, fecha, fechaHora, km, pesos, campo, alEnviar, toast, confirmar, aviso, copiar, hoyLocal } from '../ui.js?v=0.6.0';
 
 const AVISO = { preparado: ['Mensaje preparado · no enviado', 'violeta', 'reloj'], abierto: ['WhatsApp abierto · sin confirmar envío', 'ambar', 'mensaje'], enviado: ['Avisado', 'verde', 'check'], respondido: ['Respondió', 'verde', 'check'], fallido: ['No se pudo avisar', 'rojo', 'alerta'], descartado: ['Aviso descartado', '', 'ban'] };
 
