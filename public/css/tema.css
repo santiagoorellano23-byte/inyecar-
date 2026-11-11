@@ -17,6 +17,12 @@ html[data-tema-efectivo="oscuro"] {
 }
 .btn-primario {background:var(--accion);border-color:var(--accion);color:var(--sobre-accion)}
 .btn-primario:not(:disabled):not([aria-disabled="true"]):not(.cargando):hover {background:var(--accion-hover);border-color:var(--accion-hover);color:var(--sobre-accion)}
+/* En oscuro el grafito coincide con el fondo: el botón fuerte se invierte para seguir viéndose y marcar la selección. */
+html[data-tema-efectivo="oscuro"] .btn-oscuro {background:var(--ink);border-color:var(--ink);color:var(--bg)}
+html[data-tema-efectivo="oscuro"] .btn-oscuro:not(:disabled):not([aria-disabled="true"]):not(.cargando):hover {background:var(--ink-2);border-color:var(--ink-2);color:var(--bg)}
+html[data-tema-efectivo="oscuro"] .btn-oscuro.cargando::after {border-color:currentColor currentColor transparent transparent}
+/* El recuadro del QR queda blanco para leerse con la cámara; su texto usa la tinta clara del sistema. */
+html[data-tema-efectivo="oscuro"] .qr-caja .muted {color:#5d6871}
 .btn-peligro {background:var(--red-tint);color:var(--red);border-color:var(--red-line)}
 ::selection {background:var(--accion);color:var(--sobre-accion)}
 .selector-tema {display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;flex:none;border:1px solid var(--line);border-radius:50%;background:var(--surface);color:var(--ink-2);cursor:pointer;transition:background-color 140ms ease,border-color 140ms ease}

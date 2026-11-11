@@ -363,7 +363,7 @@ dialog.dialogo::backdrop { background: rgba(20, 20, 20, .5); }
 .ingreso .marca__sub { color: var(--muted); }
 
 /* QR */
-.qr-caja { display: grid; gap: 10px; justify-items: center; padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); width: max-content; max-width: 100%; }
+.qr-caja { color: #22282e; display: grid; gap: 10px; justify-items: center; padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); width: max-content; max-width: 100%; }
 .qr-caja svg { width: 180px; height: 180px; }
 .video-qr { width: 100%; max-width: 420px; border-radius: var(--r-lg); background: #000; aspect-ratio: 4 / 3; object-fit: cover; }
 
