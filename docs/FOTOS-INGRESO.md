@@ -10,6 +10,46 @@ El segundo paso requiere foto del tablero y foto del exterior, descripción de c
 
 Originales JPG/PNG/WEBP hasta 15 MB por archivo, sin compresión ni edición automática. El selector nativo permite elegir fotos; las opciones de cámara dependen del dispositivo. Falta comprobar cámara y teclado en teléfono físico; no se declara validada esa parte por emulación.
 
+## Panel rápido (propuesta A, 12/11/2026)
+
+El paso 2 pasó al diseño A: tres controles fijos (Tablero, Exterior, Daños) con cámara y alternativa «Galería», miniaturas de 52 × 52 px por categoría con espacio reservado, y dos comprobaciones sin respuesta preseleccionada.
+
+- Tablero: «Sin alertas observadas», «Con testigos encendidos» (pide cuáles y el estado del motor: encendido, solo en contacto o no arranca) o «No enciende el tablero» (pide por qué). Que el tablero no encienda no se registra como que el motor no arranca.
+- Carrocería e interior: «Sin daños visibles observados» queda registrado sin escribirlo. «Con daños previos» muestra un registro por daño, con descripción y sus fotos. Tocar «Daños» marca «Con daños previos» y crea el daño. Si se cancela la cámara, se deshace esa declaración automática.
+- Pasar a «Sin daños» con daños cargados no borra nada: avisa y no deja continuar hasta resolverlo.
+- Exterior exige al menos una foto. Frente, atrás y laterales solo se sugieren; no se afirma qué ángulo muestra cada imagen.
+- La observación general es opcional («Aclarar zona no revisada»).
+- Reemplazar se hace desde el visor de la foto. La anterior se conserva hasta que el servidor confirma la nueva.
+- Quitar ofrece «Deshacer» durante 6 segundos y no borra nada del servidor.
+- Reintentar repite solo la foto fallida, con su misma clave de idempotencia.
+- Una foto subiendo o con error no cuenta como guardada.
+
+**Formato 2 del registro** (`version: 2`):
+- `danos: [{n, descripcion, fotos:[ids]}]`;
+- cada foto de daño lleva `dano` (posición) y su descripción se arma en el servidor;
+- `motor` solo con testigos;
+- `observaciones` puede quedar vacía.
+
+El servidor rechaza:
+- un daño sin foto;
+- una foto de daño sin daño;
+- daños con «Sin daños».
+
+El formato 1 se sigue aceptando para pestañas que tengan la versión anterior en caché. Las órdenes viejas se muestran igual que antes.
+
+**Causa del salto al principio:**
+1. Cuando el teléfono descartaba la pestaña con la cámara abierta, la recepción se restauraba en el paso 2 pero la navegación hacía `scrollTo(0,0)` y enfocaba el título.
+2. Cada carga redibujaba todo el bloque de fotos, de modo que el control enfocado desaparecía y la imagen grande empujaba el contenido hacia abajo.
+
+**Corrección:**
+- Al abrir la cámara, el borrador guarda el control de origen y la posición. Tras una recarga, la vista vuelve a ese control y avisa que, si la foto no aparece, hay que tomarla de nuevo. Sin recarga, no se mueve nada.
+- Cada foto tiene una clave estable y solo se actualiza su miniatura, su fila y su control.
+- El foco vuelve al botón de origen al elegir, cancelar o cerrar el visor.
+- Al volver desde el paso 3 se retoma la posición anterior.
+- Los errores al continuar se muestran junto al dato y llevan hasta él.
+
+No se guardan imágenes en el navegador: si la pestaña se recarga antes de que una foto llegue al servidor, esa foto se pierde y se pide tomarla de nuevo.
+
 ## Persistencia y seguridad
 
 - La carga va a archivos privados existentes, fuera de public. El borrador en sessionStorage guarda referencias y descripciones, nunca los binarios.

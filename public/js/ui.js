@@ -122,7 +122,8 @@ export function limpiarErrores(form) {
   form.querySelectorAll('[aria-invalid]').forEach((e) => e.removeAttribute('aria-invalid'));
 }
 // Muestra un resumen arriba del formulario y marca el campo. Lo escrito no se borra.
-export function mostrarError(form, err) {
+// Con enLugar, el mensaje queda solo junto al dato y la pantalla va hasta él en vez de subir al resumen.
+export function mostrarError(form, err, { enLugar = false } = {}) {
   limpiarErrores(form);
   const box = document.createElement('div');
   box.className = 'resumen-errores';
@@ -139,6 +140,7 @@ export function mostrarError(form, err) {
       c.classList.add('campo--error');
       const ctl = c.querySelector('input, select, textarea');
       if (ctl) { ctl.setAttribute('aria-invalid', 'true'); destino = ctl; }
+      if (err.destino?.isConnected) destino = err.destino;
       const p = document.createElement('p');
       p.className = 'campo__error';
       p.id = `error-campo-${++nCampo}`;
@@ -148,8 +150,10 @@ export function mostrarError(form, err) {
         ctl.setAttribute('aria-describedby', [ctl.getAttribute('aria-describedby'), p.id].filter(Boolean).join(' '));
       }
       c.appendChild(p);
+      if (enLugar) p.setAttribute('role', 'alert');
     }
   }
+  if (enLugar && destino) { destino.scrollIntoView({ block: 'center' }); destino.focus({ preventScroll: true }); return; }
   box.innerHTML = `<h2>${err.datos?.guardadoSinConfirmar ? 'Guardado sin confirmar' : err.datos?.sinConexion ? 'Consulta sin conexión' : 'Falta corregir algo'}</h2><p>${esc(err.message)}</p>${destino ? `<p><button type="button" class="enlace" data-ir-campo>Ir al dato</button></p>` : ''}`;
   form.prepend(box);
   box.querySelector('[data-ir-campo]')?.addEventListener('click', (e) => { e.preventDefault(); destino.focus(); });

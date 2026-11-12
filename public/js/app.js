@@ -227,11 +227,13 @@ async function mostrar({ conservarScroll = false } = {}) {
     vistaActual=location.hash;
     document.title = `${v.titulo} · ${app.sesion.taller.nombre}`;
     main.removeAttribute('aria-busy');
-    if (v.despues) v.despues(main);
+    // Una vista puede devolver su propia posición (por ejemplo, al recuperarse de una recarga durante la cámara).
+    const propia = v.despues ? v.despues(main) : null;
     main.querySelectorAll('.contexto-toggle').forEach(d=>d.open=matchMedia('(min-width:1360px)').matches);
     const mem=memoriaVistas.get(vistaActual);
     if(mem) for(const x of mem.campos){const el=document.getElementById(x.id);if(el&&el.value!==x.valor){el.value=x.valor;el.dispatchEvent(new Event('input',{bubbles:true}));}}
     if (conservarScroll) window.scrollTo(0, scroll);
+    else if (propia?.restaurar?.()) { /* La vista ya ubicó la pantalla y el foco. */ }
     else if(mem) { window.scrollTo(0,mem.scroll); (main.querySelector('h1') || main).focus({preventScroll:true}); }
     else { window.scrollTo(0, 0); (main.querySelector('h1') || main).focus({ preventScroll: true }); }
     // En la orden cambia el contenido de la solapa; la identidad y las barras sticky quedan quietas.

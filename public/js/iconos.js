@@ -22,6 +22,7 @@ const P = {
   abajo: '<path d="m6 9 6 6 6-6"/>',
   check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   reloj: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  tablero: '<path d="M3.8 17a8.2 8.2 0 1 1 16.4 0"/><path d="m12 17 3.8-4.4"/><path d="M7.4 12.8h.01M12 9.5h.01"/>',
   caja: '<path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/>',
   usuario: '<circle cx="12" cy="8" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>',
   usuarios: '<circle cx="9" cy="8.5" r="3.3"/><path d="M3 19.5a6 6 0 0 1 12 0"/><path d="M15.5 5.5a3.3 3.3 0 0 1 0 6.3M17.5 14a6 6 0 0 1 3.5 5.5"/>',

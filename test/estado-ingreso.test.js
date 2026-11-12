@@ -70,6 +70,30 @@ test('Archivos perdidos o alterados y huellas repetidas impiden confirmar sin co
  E.servidor.db.prepare('UPDATE adjuntos SET sha256=? WHERE id=?').run(otro.sha256,otro.id);
  assert.deepEqual(contar(),n);assert.equal(E.servidor.db.prepare('SELECT visita_id FROM adjuntos WHERE id=?').get(a.id).visita_id,null);
 });
+// Formato 2 (panel rápido): cada foto de daño queda vinculada a su daño y «sin daños» no exige texto.
+const subirDetalle=async(cliente,clave,n)=>{const token=crypto.randomUUID(),crudo=Buffer.concat([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64'),Buffer.from(`DETALLE FICTICIO ${n} ${token}`)]);return (await cliente.post(`/api/recepcion/fotos?clave=${clave}&tipo=detalle&token=${token}`,undefined,{crudo,idempotencia:token,cabeceras:{'Content-Type':'image/png'}})).id;};
+const v2=e=>({version:2,clave:e.clave,fotos:e.fotos.map(({id,tipo})=>({id,tipo})),carroceria:'sin_danos',tablero:'sin_testigos',danos:[],confirmado:true});
+test('Formato 2: sin daños se registra sin escribirlo y el tablero distingue testigos, motor y tablero apagado',async()=>{
+ const e=v2(await fotosPrueba(dueno)),n=contar();
+ for(const mal of [{...e,tablero:'con_testigos',testigos:'ABS (ficticio)'},{...e,tablero:'con_testigos',testigos:'ABS',motor:'acelerado'},{...e,tablero:'no_enciende'},{...e,danos:[{descripcion:'Rayón (ficticio)'}]},{...e,fotos:[...e.fotos.slice(0,1),{...e.fotos[1],dano:0}]}])
+  assert.equal((await dueno.pedir('POST','/api/visitas',{...cuerpo(),estadoIngreso:mal})).estado,400);
+ assert.deepEqual(contar(),n);
+ const r=await dueno.post('/api/visitas',{...cuerpo(),estadoIngreso:{...e,tablero:'con_testigos',testigos:'Check engine (ficticio)',motor:'no_arranca'}}),estado=r.visita.recepcion.estadoIngreso;
+ assert.equal(estado.version,2);assert.equal(estado.carroceria,'sin_danos');assert.equal(estado.observaciones,'');assert.equal(estado.motor,'no_arranca');assert.deepEqual(estado.danos,[]);
+ assert.deepEqual(estado.fotos.map(f=>f.descripcion),['Tablero al ingresar','Exterior al ingresar']);
+});
+test('Formato 2: varios daños conservan su descripción y sus fotos; un daño sin foto o una foto sin daño no se aceptan',async()=>{
+ const base=await fotosPrueba(recepcion),e=v2(base),d1=await subirDetalle(recepcion,e.clave,1),d2=await subirDetalle(recepcion,e.clave,2),d3=await subirDetalle(recepcion,e.clave,3);
+ const con={...e,carroceria:'con_danos',danos:[{descripcion:'Rayón puerta delantera derecha (ficticio)'},{descripcion:'Paragolpes trasero golpeado (ficticio)'}],fotos:[...e.fotos,{id:d1,tipo:'detalle',dano:0},{id:d2,tipo:'detalle',dano:1},{id:d3,tipo:'detalle',dano:1}]},n=contar();
+ for(const mal of [{...con,danos:[]},{...con,fotos:con.fotos.filter(f=>f.id!==d1)},{...con,fotos:con.fotos.map(f=>f.id===d1?{...f,dano:5}:f)},{...con,fotos:con.fotos.map(f=>f.id===d1?{id:d1,tipo:'detalle'}:f)},{...con,danos:[con.danos[0],{descripcion:' '}]},{...con,carroceria:'sin_danos'}])
+  assert.equal((await recepcion.pedir('POST','/api/visitas',{...cuerpo(),estadoIngreso:mal})).estado,400);
+ assert.deepEqual(contar(),n);
+ const r=await recepcion.post('/api/visitas',{...cuerpo(),estadoIngreso:{...con,observaciones:'No se revisó el baúl (ficticio).'}}),estado=r.visita.recepcion.estadoIngreso;
+ assert.deepEqual(estado.danos.map(d=>[d.n,d.descripcion,d.fotos]),[[1,con.danos[0].descripcion,[d1]],[2,con.danos[1].descripcion,[d2,d3]]]);
+ assert.equal(estado.fotos.find(f=>f.id===d3).dano,1);assert.match(estado.fotos.find(f=>f.id===d3).descripcion,/^Daño 2: Paragolpes/);
+ assert.equal(estado.observaciones,'No se revisó el baúl (ficticio).');
+ for(const id of [d1,d2,d3])assert.equal(E.servidor.db.prepare('SELECT visita_id FROM adjuntos WHERE id=?').get(id).visita_id,r.id);
+});
 test('Respaldo y restauración conservan el registro original, fotos privadas y huellas',async()=>{
  const r=await dueno.recibir(cuerpo()),original=r.visita.recepcion.estadoIngreso;
  const copia=await crearRespaldo({archivoBase:path.join(E.dir,'inyecar.db'),carpetaArchivos:path.join(E.dir,'archivos'),destino:path.join(E.dir,'copias-prueba')});

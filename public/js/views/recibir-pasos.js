@@ -26,7 +26,7 @@ export default async function recibir({app,query}){
   return {titulo:'Recibir un auto',html:`<div class="pagina rec-pasos">
     <header class="rec-cab"><button class="btn btn-texto" type="button" data-atras aria-label="Volver al paso anterior">${icono('izq')}</button><h1 tabindex="-1">Recibir un auto</h1><a class="btn btn-texto" href="#/hoy">Salir</a></header>
     <div class="rec-progreso" role="progressbar" aria-label="Progreso de recepción" aria-valuemin="1" aria-valuemax="7" aria-valuenow="1">${PASOS.map((_,i)=>`<span data-progreso="${i}"></span>`).join('')}</div>
-    <p class="rec-paso-label" data-paso-label>Paso 1 de 7 · Auto</p>
+    <div class="rec-paso-fila"><p class="rec-paso-label" data-paso-label>Paso 1 de 7 · Auto</p><span data-cab-patente></span></div>
     <form id="f-recibir" class="rec-layout" novalidate>
       <div class="rec-contenido">
         <section data-paso="0" class="rec-etapa">
@@ -47,13 +47,14 @@ export default async function recibir({app,query}){
             ${campo({nombre:'cnombre',etiqueta:'Nombre del cliente',requerido:true,attrs:'maxlength="120"'})}${campo({nombre:'ctelefono',etiqueta:'Teléfono',tipo:'tel',requerido:true,attrs:'maxlength="40" inputmode="tel"'})}
           </div>
         </section>
-        <section data-paso="1" class="rec-etapa" hidden><h2 tabindex="-1">Estado al ingresar</h2><p class="rec-explica">Antes de mover o reparar el auto, registrá cómo llegó. Las fotos del tablero y del exterior son obligatorias.</p>
+        <section data-paso="1" class="rec-etapa rec-ingreso" hidden><h2 tabindex="-1" class="sr">Estado al ingresar</h2>
           <div class="campo" data-campo="fotosIngreso"><div data-fotos-ingreso></div></div>
-          ${opcionesRadio('tableroEstado',[['sin_testigos','Sin testigos de falla observados'],['con_testigos','Hay testigos encendidos'],['no_enciende','No se puede encender el tablero']],'','Estado del tablero')}
-          ${campo({nombre:'ingresoTestigos',etiqueta:'Testigos encendidos o aclaración',tipo:'textarea',attrs:'maxlength="1000" rows="2"',ayuda:'Indicá cuáles se ven y si el motor está encendido, solo en contacto o no arranca. Si no enciende, fotografiá igualmente el tablero y explicalo.'})}
-          ${opcionesRadio('carroceria',[['sin_danos','Sin daños visibles observados'],['con_danos','Hay daños previos']],'','Carrocería e interior')}
-          ${campo({nombre:'ingresoObservaciones',etiqueta:'Estado visible y detalles al ingresar',tipo:'textarea',requerido:true,attrs:'maxlength="2000" rows="3"',placeholder:'Ej.: rayón en puerta delantera derecha, paragolpes trasero golpeado.',ayuda:'Revisá carrocería, vidrios e interior. Ubicá cada daño y agregá una foto de detalle. Si no observás daños, dejalo escrito. Lo no revisado debe quedar aclarado.'})}
-          ${casilla('ingresoConfirmado','Revisé las fotos: corresponden a este auto y muestran el estado de este ingreso')}
+          <div class="ing-bloque"><div class="ing-seg ing-seg--3">${opcionesRadio('tableroEstado',[['sin_testigos','Sin alertas observadas'],['con_testigos','Con testigos encendidos'],['no_enciende','No enciende el tablero']],'','Tablero')}</div>
+            <div class="ing-detalle" data-testigos hidden>${campo({nombre:'ingresoTestigos',etiqueta:'¿Qué testigos se ven?',requerido:true,attrs:'maxlength="1000"',placeholder:'Ej.: check engine, ABS'})}<div class="ing-seg ing-seg--3 ing-seg--chico" data-motor>${opcionesRadio('ingresoMotor',[['encendido','Motor encendido'],['contacto','Solo en contacto'],['no_arranca','No arranca']],'','Estado del motor')}</div></div></div>
+          <div class="ing-bloque"><div class="ing-seg ing-seg--2">${opcionesRadio('carroceria',[['sin_danos','Sin daños visibles observados'],['con_danos','Con daños previos']],'','Carrocería e interior')}</div><div class="ing-danos" data-danos></div>
+            <details class="ing-aclarar" data-aclarar><summary>Aclarar zona no revisada (opcional)</summary>${campo({nombre:'ingresoObservaciones',etiqueta:'Qué no se pudo revisar o qué conviene aclarar',tipo:'textarea',attrs:'maxlength="2000" rows="2"',placeholder:'Ej.: no se revisó el baúl porque estaba cargado.'})}</details></div>
+          ${casilla('ingresoConfirmado','Verifiqué las fotos y el estado de este auto')}
+          <p class="small muted">Se guarda como borrador en esta pestaña. Cuenta como recibido recién al confirmar en el paso 7.</p>
         </section>
         <section data-paso="2" class="rec-etapa" hidden><h2 tabindex="-1">¿Por qué viene?</h2><p class="rec-explica">Marcá lo que cuenta el cliente. Podés marcar varios. No es un diagnóstico.</p>
           ${turno?.motivo?`<p class="aviso">En el turno dijo: ${esc(turno.motivo)}. Revisalo con el cliente.</p>`:''}
@@ -86,27 +87,36 @@ export default async function recibir({app,query}){
   </div>`,despues(raiz){
     const f=raiz.querySelector('#f-recibir'),q=f.querySelector('#rec-q'),resultados=f.querySelector('[data-resultados]');
     let modo=elegido?'conocido':'buscar',paso=0,volverRevision=false,motivos=[],consulta=0,consultaContacto=0,timer,ctimer,pendiente=null;
-    let fotosIngreso;
+    let fotosIngreso;const posiciones={};
     const campos=()=>leerForm(f);
     if(draft&&!query.vehiculo&&!query.turno&&!query.patente){
       for(const [k,v] of Object.entries(draft.campos||{})){const es=[...f.elements].filter(e=>e.name===k);for(const e of es){if(e.type==='checkbox')e.checked=!!v;else if(e.type==='radio')e.checked=e.value===v;else e.value=v??'';}}
-      modo=draft.modo||modo;paso=draft.fotosVersion===1?Math.min(6,Math.max(0,draft.paso||0)):0;motivos=draft.motivos||[];pendiente=draft.pendiente||null;f.dataset.clave=draft.clave||crypto.randomUUID();
+      modo=draft.modo||modo;paso=draft.fotosVersion>=1?Math.min(6,Math.max(0,draft.paso||0)):0;motivos=draft.motivos||[];pendiente=draft.pendiente||null;f.dataset.clave=draft.clave||crypto.randomUUID();
     }else{f.elements.cnombre.value=turno?.nombre||'';f.elements.ctelefono.value=turno?.telefono||'';}
     claveDeEnvio(f);
     const guardar=()=>{
       f.dataset.sucio='1';
-      const ok=guardarBorrador(app,{fotosVersion:1,fotos:fotosIngreso?.datos()||draft?.fotos||[],campos:campos(),vehiculoId:modo==='conocido'?elegido?.id:null,modo,paso,motivos,clave:f.dataset.clave,pendiente,turnoId:turno?.id,relacionadaId:relacionada?.id});
-      f.toggleAttribute('data-sin-aviso',ok);f.querySelector('[data-estado-borrador]').textContent=pendiente?'Guardado sin confirmar. Reintentá sin cambiar los datos.':ok?'Borrador en esta pestaña · no cuenta como recibido.':'No se pudo conservar el borrador. No cierres esta pantalla.';
+      const ok=guardarBorrador(app,{fotosVersion:2,ingreso:fotosIngreso?.borrador()||ingresoInicial,campos:campos(),vehiculoId:modo==='conocido'?elegido?.id:null,modo,paso,motivos,clave:f.dataset.clave,pendiente,turnoId:turno?.id,relacionadaId:relacionada?.id});
+      f.toggleAttribute('data-sin-aviso',ok);f.querySelector('[data-estado-borrador]').textContent=pendiente?'Guardado sin confirmar. Reintentá sin cambiar los datos.':!ok?'No se pudo conservar el borrador. No cierres esta pantalla.':paso===1&&fotosIngreso?fotosIngreso.faltantes(campos()):'Borrador en esta pestaña · no cuenta como recibido.';
     };
-    fotosIngreso=enlazarFotosIngreso(f.querySelector('[data-fotos-ingreso]'),{clave:claveDeEnvio(f),inicial:draft?.fotos||[],guardar:()=>{f.elements.ingresoConfirmado.checked=false;guardar();}});
+    // Borradores de la versión anterior guardaban las fotos sueltas; el panel los adapta.
+    const ingresoInicial=draft?.ingreso||{fotos:draft?.fotos||[],danos:[]};
+    const ancla=paso===1&&ingresoInicial.ancla&&Date.now()-ingresoInicial.ancla.t<15*60000?ingresoInicial.ancla:null;
+    const poner=v=>{for(const r of f.querySelectorAll('[name=carroceria]'))r.checked=r.value===v;vistaDatos();guardar();};
+    fotosIngreso=enlazarFotosIngreso(f.querySelector('[data-fotos-ingreso]'),{clave:claveDeEnvio(f),inicial:ingresoInicial.fotos,danos:ingresoInicial.danos,ancla,danosBox:f.querySelector('[data-danos]'),carroceria:{leer:()=>campos().carroceria,poner},guardar,invalidar:()=>{f.elements.ingresoConfirmado.checked=false;guardar();}});
+    f.querySelector('[data-aclarar]').open=!!f.elements.ingresoObservaciones.value.trim();
     const marca=()=>{const d=campos();f.elements.marca.value=d.marcaOpcion==='Otra'?d.marcaOtra:d.marcaOpcion||'';f.querySelector('[data-otra-marca]').hidden=d.marcaOpcion!=='Otra';f.querySelector('[data-marca-estado]').textContent=d.marcaOpcion?`Marca elegida: ${f.elements.marca.value||'Otra (completá el nombre)'}`:'Elegí una marca.';f.elements.marca.dispatchEvent(new Event('input'));};
     enlazarModelos(f);
     const vistaDatos=()=>{
       const d=campos();f.querySelector('[data-nuevo-auto]').hidden=modo!=='nuevo';f.querySelector('[data-buscar-auto]').hidden=modo==='nuevo';
       f.elements.patente.disabled=!!d.sinPatente;f.elements.km.disabled=!!d.sinKm;
-      const exigeTestigos=['con_testigos','no_enciende'].includes(d.tableroEstado);
-      f.elements.ingresoTestigos.required=exigeTestigos;f.elements.ingresoTestigos.setAttribute('aria-required',String(exigeTestigos));
-      f.querySelector('[data-campo="ingresoTestigos"] label span').hidden=exigeTestigos;
+      // «No enciende el tablero» pide su explicación; el estado del motor (incluido «No arranca») solo aparece con testigos.
+      const testigos=f.elements.ingresoTestigos,noEnciende=d.tableroEstado==='no_enciende';
+      f.querySelector('[data-testigos]').hidden=!['con_testigos','no_enciende'].includes(d.tableroEstado);f.querySelector('[data-motor]').hidden=d.tableroEstado!=='con_testigos';
+      f.querySelector('[data-campo="ingresoTestigos"] label').textContent=noEnciende?'¿Por qué no enciende el tablero?':'¿Qué testigos se ven?';testigos.placeholder=noEnciende?'Ej.: batería descargada, no hay llave':'Ej.: check engine, ABS';
+      fotosIngreso?.actualizarCarroceria();
+      const cabPatente=modo==='nuevo'?(d.sinPatente?'':d.patente.trim()):elegido?.patente;
+      f.closest('.rec-pasos').querySelector('[data-cab-patente]').innerHTML=cabPatente&&paso>0?`<span class="rec-cab-patente" aria-label="Patente ${esc(cabPatente)}">${esc(cabPatente)}</span>`:'';
       f.querySelector('[data-revision]').hidden=d.tipo!=='revision';f.querySelector('[data-autorizado]').hidden=!(d.tipo==='service'||d.tipo==='revision'&&d.revisionCosto==='si');f.querySelector('[data-service]').hidden=d.tipo!=='service';f.querySelector('[data-otra-persona]').hidden=d.quien!=='otra';
       const abierta=elegido?.visitas?.find(x=>!x.entregada_at&&!x.anulada_at);
       f.querySelector('[data-elegido]').innerHTML=modo==='conocido'&&elegido?`<div class="rec-elegido">${resultado(elegido)}${!abierta?'<p>'+icono('check')+' Auto elegido. Podés continuar o buscar otro.</p>':''}</div>`:'';
@@ -131,7 +141,16 @@ export default async function recibir({app,query}){
         if(!d.contactoId&&d.ctelefono.replace(/\D/g,'').length<6)throw falla('Revisá el teléfono del cliente.','ctelefono');
       }else if(!elegido||modo!=='conocido')throw falla('Elegí un auto o cargá uno nuevo.','vehiculoId');
       else if(elegido.visitas?.some(x=>!x.entregada_at&&!x.anulada_at))throw falla('Este auto ya tiene una orden abierta. Continuá esa orden.','vehiculoId');}
-      if(i===1){fotosIngreso.validar(d.carroceria);if(!d.tableroEstado)throw falla('Indicá el estado del tablero.','tableroEstado');if(d.tableroEstado!=='sin_testigos'&&!d.ingresoTestigos.trim())throw falla('Detallá los testigos o por qué no enciende.','ingresoTestigos');if(!d.carroceria)throw falla('Indicá si observás daños previos.','carroceria');if(!d.ingresoObservaciones.trim())throw falla('Describí el estado visible al ingresar.','ingresoObservaciones');if(!d.ingresoConfirmado)throw falla('Confirmá que revisaste las fotos y el estado al ingresar.','ingresoConfirmado');}
+      if(i===1){
+        fotosIngreso.validarFotos();
+        if(!d.tableroEstado)throw falla('Indicá cómo está el tablero.','tableroEstado');
+        if(d.tableroEstado==='con_testigos'&&!d.ingresoTestigos.trim())throw falla('Escribí qué testigos se ven.','ingresoTestigos');
+        if(d.tableroEstado==='con_testigos'&&!d.ingresoMotor)throw falla('Indicá si el motor está encendido, solo en contacto o no arranca.','ingresoMotor');
+        if(d.tableroEstado==='no_enciende'&&!d.ingresoTestigos.trim())throw falla('Explicá por qué no enciende el tablero.','ingresoTestigos');
+        if(!d.carroceria)throw falla('Indicá si observás daños previos.','carroceria');
+        fotosIngreso.validarDanos(d.carroceria);
+        if(!d.ingresoConfirmado)throw falla('Marcá «Verifiqué las fotos y el estado de este auto».','ingresoConfirmado');
+      }
       if(i===2){if(!motivos.length&&!d.relato.trim())throw falla('Elegí un motivo o escribí lo que cuenta el cliente.','relato');if(motivos.some(m=>m.id==='otro')&&!d.otro.trim())throw falla('Contá el otro motivo.','otro');}
       if(i===3&&!d.sinKm){const n=d.km.replace(/[.\s]/g,'');if(!/^\d+$/.test(n)||+n>9999999)throw falla('Escribí los kilómetros o marcá Sin lectura.','km');const ultima=ultimaLectura(elegido?.lecturas);if(modo==='conocido'&&ultima&&+n<ultima.km&&!d.kmExplicacion.trim())throw falla(`La lectura anterior es ${ultima.km} km. Explicá la diferencia.`,'kmExplicacion');}
       if(i===4){if(!d.tipo)throw falla('Elegí qué autoriza el cliente.','tipo');if(d.tipo==='revision'&&!d.revisionCosto)throw falla('Indicá si la revisión tiene costo.','revisionCosto');if((d.tipo==='service'||d.revisionCosto==='si')&&!d.autPersona.trim())throw falla('Indicá quién autorizó lo acordado.','autPersona');}
@@ -139,16 +158,18 @@ export default async function recibir({app,query}){
     };
     const revisar=()=>{
       const d=campos(),auto=modo==='nuevo'?[d.sinPatente?'Sin patente visible':d.patente,d.marca,d.modelo,d.anio].filter(Boolean).join(' · '):[elegido?.patente,elegido?.marca,elegido?.modelo].filter(Boolean).join(' · ');
-      const filas=[['Auto',auto,0],['Cliente',modo==='nuevo'?d.cnombre+' · '+d.ctelefono:(elegido?.contacto?.nombre||'Contacto del vehículo'),0],['Fotos del ingreso',fotosIngreso.datos().length+' fotos: '+fotosIngreso.datos().map(x=>x.tipo).join(', '),1],['Estado observado',d.ingresoObservaciones,1],['Tablero / testigos',[{sin_testigos:'Sin testigos de falla observados',con_testigos:'Testigos encendidos',no_enciende:'No se puede encender'}[d.tableroEstado],d.ingresoTestigos].filter(Boolean).join(' · '),1],['Motivo',resumenMotivos(motivos,d.otro)||'Sin botones seleccionados',2],['En palabras del cliente',d.relato||'No se cargó',2],['Kilometraje',d.sinKm?'Sin lectura':d.km+' km',3],['Aclaración de la lectura',d.kmExplicacion||'No se cargó',3],['Autorización',d.tipo==='service'?'Service ya autorizado':`Revisión y presupuesto · ${d.revisionCosto==='si'?'con costo':'sin costo'}`,4],['Quién autorizó',d.autPersona&&!(d.tipo==='revision'&&d.revisionCosto==='no')?d.autPersona:'No corresponde',4],['Importe acordado',d.autImporte&&!(d.tipo==='revision'&&d.revisionCosto==='no')?d.autImporte:'No se cargó',4],['Plantilla de tareas',d.tipo==='service'?(cat.plantillas.find(p=>String(p.id)===d.plantillaId)?.nombre||'Sin plantilla'):'No corresponde',4],['Quién trae el auto',d.quien==='otra'?d.dejaNombre+' · '+d.dejaTelefono:'El cliente',5],['Responsable',usuarios.find(u=>String(u.id)===d.responsableId)?.nombre||'Sin asignar',5],['Retiro',d.retiro?.replace('T',' ')||'A confirmar',5],['Prioridad',d.urgente?'Urgente':'Normal',5],['Nota de retiro',d.retiroNota||'No se cargó',5]];
+      const filas=[['Auto',auto,0],['Cliente',modo==='nuevo'?d.cnombre+' · '+d.ctelefono:(elegido?.contacto?.nombre||'Contacto del vehículo'),0],['Fotos del ingreso',fotosIngreso.resumen(),1],['Tablero',[{sin_testigos:'Sin alertas observadas',con_testigos:'Con testigos encendidos',no_enciende:'No enciende el tablero'}[d.tableroEstado],d.tableroEstado!=='sin_testigos'&&d.ingresoTestigos,d.tableroEstado==='con_testigos'&&{encendido:'Motor encendido',contacto:'Solo en contacto',no_arranca:'No arranca'}[d.ingresoMotor]].filter(Boolean).join(' · '),1],['Carrocería e interior',d.carroceria==='con_danos'?fotosIngreso.resumenDanos():'Sin daños visibles observados',1],['Aclaración del ingreso',d.ingresoObservaciones||'No se cargó',1],['Motivo',resumenMotivos(motivos,d.otro)||'Sin botones seleccionados',2],['En palabras del cliente',d.relato||'No se cargó',2],['Kilometraje',d.sinKm?'Sin lectura':d.km+' km',3],['Aclaración de la lectura',d.kmExplicacion||'No se cargó',3],['Autorización',d.tipo==='service'?'Service ya autorizado':`Revisión y presupuesto · ${d.revisionCosto==='si'?'con costo':'sin costo'}`,4],['Quién autorizó',d.autPersona&&!(d.tipo==='revision'&&d.revisionCosto==='no')?d.autPersona:'No corresponde',4],['Importe acordado',d.autImporte&&!(d.tipo==='revision'&&d.revisionCosto==='no')?d.autImporte:'No se cargó',4],['Plantilla de tareas',d.tipo==='service'?(cat.plantillas.find(p=>String(p.id)===d.plantillaId)?.nombre||'Sin plantilla'):'No corresponde',4],['Quién trae el auto',d.quien==='otra'?d.dejaNombre+' · '+d.dejaTelefono:'El cliente',5],['Responsable',usuarios.find(u=>String(u.id)===d.responsableId)?.nombre||'Sin asignar',5],['Retiro',d.retiro?.replace('T',' ')||'A confirmar',5],['Prioridad',d.urgente?'Urgente':'Normal',5],['Nota de retiro',d.retiroNota||'No se cargó',5]];
       f.querySelector('[data-revision-final]').innerHTML=filas.map(([k,v,i])=>`<button type="button" class="rec-review-row" data-cambiar="${i}" aria-label="Cambiar ${k}"><span><small>${k}</small><strong>${esc(v)}</strong></span><span>Cambiar</span></button>`).join('');
       f.querySelectorAll('[data-cambiar]').forEach(b=>b.onclick=()=>{volverRevision=true;irPaso(+b.dataset.cambiar);});
     };
     const irPaso=(i,enfocar=true)=>{
       const anterior=paso;detenerMovimiento(f);
+      if(enfocar)posiciones[anterior]=scrollY;
       paso=i;limpiarErrores(f);f.querySelectorAll('[data-paso]').forEach(s=>s.hidden=+s.dataset.paso!==i);
       raiz.querySelectorAll('[data-progreso]').forEach(s=>s.classList.toggle('completo',+s.dataset.progreso<=i));raiz.querySelector('.rec-progreso').setAttribute('aria-valuenow',i+1);raiz.querySelector('.rec-progreso').setAttribute('aria-valuetext',PASOS[i]);raiz.querySelector('[data-paso-label]').textContent=`Paso ${i+1} de ${PASOS.length} · ${PASOS[i]}`;
       f.querySelectorAll('[data-indice]').forEach(li=>li.toggleAttribute('aria-current',+li.dataset.indice===i));f.querySelector('[data-omitir]').hidden=i!==5||volverRevision;f.querySelector('[data-continuar]').type=i===6?'submit':'button';f.querySelector('[data-continuar]').innerHTML=i===6?`Recibir ${icono('check')}`:volverRevision?'Volver a revisión':`Continuar ${icono('der')}`;
-      vistaDatos();if(i===6)revisar();if(enfocar){window.scrollTo(0,0);f.querySelector(`[data-paso="${i}"] h2`).focus({preventScroll:true});}guardar();
+      // Al volver a un paso anterior se retoma donde estaba; al avanzar se empieza arriba.
+      vistaDatos();if(i===6)revisar();if(enfocar){window.scrollTo(0,i<anterior?posiciones[i]||0:0);f.querySelector(`[data-paso="${i}"] h2`).focus({preventScroll:true});}guardar();
       if(enfocar&&i!==anterior)entrada(f.querySelector(`[data-paso="${i}"]`),{tipo:'paso',direccion:i-anterior});
     };
     const bloquear=()=>{f.querySelectorAll('input,select,textarea,button').forEach(e=>{if(!e.matches('[data-continuar]'))e.disabled=true;});raiz.querySelector('[data-atras]').disabled=true;f.querySelector('[data-continuar]').textContent='Reintentar el ingreso';};
@@ -165,22 +186,25 @@ export default async function recibir({app,query}){
     f.querySelector('[data-omitir]').onclick=()=>{try{validar(5);irPaso(6);}catch(e){mostrarError(f,e);}};
     const cq=f.querySelector('#rec-contacto-q'),cc=f.querySelector('[data-contactos]');
     cq.oninput=()=>{const n=++consultaContacto;clearTimeout(ctimer);const t=cq.value.trim();if(t.length<2){cc.innerHTML='';return;}ctimer=setTimeout(async()=>{try{const r=await get('/api/contactos?q='+encodeURIComponent(t));if(n!==consultaContacto||!f.isConnected)return;cc.innerHTML=r.contactos.slice(0,5).map(c=>`<button type="button" class="resultado" data-contacto="${c.id}"><strong>${esc(c.nombre)}</strong><span>${esc(c.telefono||'Sin teléfono')}</span><span>Reutilizar contacto</span></button>`).join('')||'<p class="small muted">Sin coincidencias. Completá los datos del cliente.</p>';cc.querySelectorAll('[data-contacto]').forEach(b=>b.onclick=()=>{const c=r.contactos.find(c=>c.id===+b.dataset.contacto);f.elements.contactoId.value=c.id;f.elements.cnombre.value=c.nombre;f.elements.ctelefono.value=c.telefono||'';f.elements.cnombre.readOnly=true;f.elements.ctelefono.readOnly=true;cc.innerHTML='';const p=f.querySelector('[data-contacto-elegido]');p.hidden=false;p.innerHTML='Contacto existente elegido. <button type="button" class="btn btn-texto">Usar otro contacto</button>';p.querySelector('button').onclick=()=>{f.elements.contactoId.value='';f.elements.cnombre.readOnly=false;f.elements.ctelefono.readOnly=false;p.hidden=true;guardar();};guardar();vistaDatos();});}catch(e){cc.innerHTML=`<p role="alert">${esc(e.message)}</p>`;}},220);};
-    f.querySelector('[data-continuar]').addEventListener('click',e=>{if(paso===6)return;e.preventDefault();try{validar(paso);const siguiente=volverRevision?6:paso+1;volverRevision=false;irPaso(siguiente);}catch(e){mostrarError(f,e);}});
+    // En el paso 2 el error se muestra junto al dato y lleva hasta él, sin subir al principio del formulario.
+    f.querySelector('[data-continuar]').addEventListener('click',e=>{if(paso===6)return;e.preventDefault();try{validar(paso);const siguiente=volverRevision?6:paso+1;volverRevision=false;irPaso(siguiente);}catch(e){mostrarError(f,e,{enLugar:paso===1});if(paso===1)f.querySelector('[data-estado-borrador]').textContent=e.message;}});
     f.addEventListener('keydown',e=>{if(e.key==='Enter'&&paso<6&&e.target.tagName==='INPUT'&&!['radio','checkbox','search'].includes(e.target.type)){e.preventDefault();f.querySelector('[data-continuar]').click();}});
     alEnviar(f,async()=>{
       if(!pendiente){try{validar(paso);}catch(e){throw e;}if(paso<6){const siguiente=volverRevision?6:paso+1;volverRevision=false;irPaso(siguiente);return false;}
         for(let i=0;i<6;i++){try{validar(i);}catch(e){irPaso(i);throw e;}}
       }
       const d=campos();
-      const cuerpo=pendiente||{estadoIngreso:{clave:claveDeEnvio(f),fotos:fotosIngreso.datos().map(({id,tipo,descripcion})=>({id,tipo,descripcion})),carroceria:d.carroceria,tablero:d.tableroEstado,observaciones:d.ingresoObservaciones,testigos:d.ingresoTestigos,confirmado:!!d.ingresoConfirmado},tipo:d.tipo,km:d.sinKm?'':d.km,sinKm:!!d.sinKm,kmExplicacion:d.kmExplicacion,responsableId:d.responsableId||null,retiro:d.retiro||null,retiroNota:d.retiroNota,prioridad:d.urgente?'alta':'normal',relacionadaId:relacionada?.id||null,turnoId:turno?.id||null,plantillaId:d.tipo==='service'?d.plantillaId||null:null,autorizacion:d.tipo==='service'?{persona:d.autPersona,importe:d.autImporte}:d.revisionCosto==='si'?{revisionConCosto:true,persona:d.autPersona,importe:d.autImporte}:{},recepcion:{motivos,otro:d.otro,relato:d.relato,autoriza:d.tipo,revisionCosto:d.revisionCosto},...(modo==='conocido'?{vehiculoId:elegido.id,...(d.quien==='otra'?{contacto:{nombre:d.dejaNombre,telefono:d.dejaTelefono}}:{})}:{vehiculo:{patente:d.sinPatente?`SIN PATENTE ${f.dataset.clave.slice(0,6).toUpperCase()}`:d.patente,marca:d.marca,modelo:d.modelo,anio:d.anio},...(d.contactoId?{contactoId:+d.contactoId}:{contacto:{nombre:d.cnombre,telefono:d.ctelefono}})})};
+      const cuerpo=pendiente||{estadoIngreso:{version:2,clave:claveDeEnvio(f),...fotosIngreso.envio(d.carroceria),carroceria:d.carroceria,tablero:d.tableroEstado,testigos:d.tableroEstado==='sin_testigos'?'':d.ingresoTestigos,motor:d.tableroEstado==='con_testigos'?d.ingresoMotor:null,observaciones:d.ingresoObservaciones,confirmado:!!d.ingresoConfirmado},tipo:d.tipo,km:d.sinKm?'':d.km,sinKm:!!d.sinKm,kmExplicacion:d.kmExplicacion,responsableId:d.responsableId||null,retiro:d.retiro||null,retiroNota:d.retiroNota,prioridad:d.urgente?'alta':'normal',relacionadaId:relacionada?.id||null,turnoId:turno?.id||null,plantillaId:d.tipo==='service'?d.plantillaId||null:null,autorizacion:d.tipo==='service'?{persona:d.autPersona,importe:d.autImporte}:d.revisionCosto==='si'?{revisionConCosto:true,persona:d.autPersona,importe:d.autImporte}:{},recepcion:{motivos,otro:d.otro,relato:d.relato,autoriza:d.tipo,revisionCosto:d.revisionCosto},...(modo==='conocido'?{vehiculoId:elegido.id,...(d.quien==='otra'?{contacto:{nombre:d.dejaNombre,telefono:d.dejaTelefono}}:{})}:{vehiculo:{patente:d.sinPatente?`SIN PATENTE ${f.dataset.clave.slice(0,6).toUpperCase()}`:d.patente,marca:d.marca,modelo:d.modelo,anio:d.anio},...(d.contactoId?{contactoId:+d.contactoId}:{contacto:{nombre:d.cnombre,telefono:d.ctelefono}})})};
       // La persona que lo trae no reemplaza al titular del vehículo nuevo.
       if(!pendiente&&modo==='nuevo'&&d.quien==='otra')cuerpo.retiroNota=[d.retiroNota,`Lo dejó ${d.dejaNombre}${d.dejaTelefono?' · '+d.dejaTelefono:''}`].filter(Boolean).join('. ').slice(0,300);
       f.querySelector('[data-continuar]').textContent='Guardando…';
       try{const r=await post('/api/visitas',cuerpo,{idempotencia:claveDeEnvio(f)});borrarBorrador(app);delete f.dataset.sucio;raiz.innerHTML=`<section class="rec-exito"><span class="rec-exito-icon">${icono('check')}</span><h1 tabindex="-1">Auto recibido</h1><p>El servidor confirmó la orden <strong>N.º ${esc(r.visita.numero)}</strong> para ${esc(r.visita.vehiculo.patente)}.</p><a class="btn btn-primario" href="#/visitas/${r.id}">Abrir la orden</a><a class="btn" href="#/recibir?nueva=1">Recibir otro auto</a><a class="btn btn-texto" href="#/hoy">Volver a Hoy</a></section>`;raiz.querySelector('h1').focus();}
-      catch(e){if(e.datos?.guardadoSinConfirmar){pendiente=cuerpo;guardar();bloquear();}else{const mapa={patente:0,marca:0,modelo:0,anio:0,cnombre:0,ctelefono:0,fotosIngreso:1,carroceria:1,tableroEstado:1,ingresoObservaciones:1,ingresoTestigos:1,ingresoConfirmado:1,motivos:2,relato:2,otro:2,km:3,kmExplicacion:3,tipo:4,revisionCosto:4,autPersona:4,autImporte:4,responsableId:5,retiro:5};irPaso(mapa[e.campo]??6);f.querySelector('[data-continuar]').textContent=paso===6?'Reintentar el ingreso':'Continuar';if(e.datos?.visitaAbierta)toast(e.message,{error:true,accion:{texto:'Abrir orden',fn:()=>app.ir('#/visitas/'+e.datos.visitaAbierta.id)}});}throw e;}
+      catch(e){if(e.datos?.guardadoSinConfirmar){pendiente=cuerpo;guardar();bloquear();}else{const mapa={patente:0,marca:0,modelo:0,anio:0,cnombre:0,ctelefono:0,fotosIngreso:1,carroceria:1,tableroEstado:1,ingresoObservaciones:1,ingresoTestigos:1,ingresoMotor:1,ingresoConfirmado:1,motivos:2,relato:2,otro:2,km:3,kmExplicacion:3,tipo:4,revisionCosto:4,autPersona:4,autImporte:4,responsableId:5,retiro:5};irPaso(mapa[e.campo]??6);f.querySelector('[data-continuar]').textContent=paso===6?'Reintentar el ingreso':'Continuar';if(e.datos?.visitaAbierta)toast(e.message,{error:true,accion:{texto:'Abrir orden',fn:()=>app.ir('#/visitas/'+e.datos.visitaAbierta.id)}});}throw e;}
     });
     if(draft?.campos?.contactoId){f.elements.cnombre.readOnly=true;f.elements.ctelefono.readOnly=true;const p=f.querySelector('[data-contacto-elegido]');p.hidden=false;p.innerHTML='Contacto existente recuperado del borrador. <button type="button" class="btn btn-texto">Usar otro contacto</button>';p.querySelector('button').onclick=()=>{f.elements.contactoId.value='';f.elements.cnombre.readOnly=false;f.elements.ctelefono.readOnly=false;p.hidden=true;guardar();};}
     marca();detalleMotivos();irPaso(paso,false);if(pendiente)bloquear();
     if(!pendiente){get('/api/vehiculos').then(r=>{if(!f.isConnected)return;const box=f.querySelector('[data-lista-recientes]');box.innerHTML=r.vehiculos.filter(v=>!v.archivado).slice(0,6).map(resultado).join('')||'<p class="muted">Todavía no hay vehículos.</p>';enlazarResultados(box);}).catch(e=>{if(f.isConnected)f.querySelector('[data-lista-recientes]').textContent=e.message;});if(q.value)buscar();}
+    // La pestaña se recargó con la cámara abierta: la navegación devuelve al control de origen en vez de ir arriba.
+    if(ancla)return {restaurar:()=>fotosIngreso.restaurarPosicion()};
   }};
 }
