@@ -1,8 +1,8 @@
 // Hoy en el taller: autos presentes, situación, responsable, retiro y próximo paso.
-import { get } from '../api.js?v=0.6.2';
-import {leerBorrador,borrarBorrador} from '../recepcion-modelo.js?v=0.6.2';
-import {grupoHoy,estadoDimension} from '../orden-presentacion.js?v=0.6.2';
-import { esc, icono, patente, nombreAuto, chipSituacion, cuando, fecha, hora, haceCuanto, hoyLocal, aLocal } from '../ui.js?v=0.6.2';
+import { get } from '../api.js?v=0.6.3';
+import {leerBorrador,borrarBorrador} from '../recepcion-modelo.js?v=0.6.3';
+import {grupoHoy,estadoDimension} from '../orden-presentacion.js?v=0.6.3';
+import { esc, icono, patente, nombreAuto, chipSituacion, cuando, fecha, hora, haceCuanto, hoyLocal, aLocal } from '../ui.js?v=0.6.3';
 
 const GRUPOS = [
   ['todos', 'autos presentes', null],

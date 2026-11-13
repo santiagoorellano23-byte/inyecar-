@@ -212,6 +212,10 @@ export function responderError(res, e) {
     return enviarJson(res, 400, { error: 'Uno de los datos elegidos no pertenece a este taller o ya no existe. Recargá y elegí de nuevo.' });
   }
   console.error(new Date().toISOString(), e);
+  // Disco o cuota llenos (archivos o SQLite): se dice claramente y no se confirma nada.
+  if (['ENOSPC', 'EDQUOT'].includes(e?.code) || /database or disk is full|SQLITE_FULL/i.test(msg)) {
+    return enviarJson(res, 507, { error: 'No se guardó: el servidor se quedó sin espacio. Avisá al administrador y volvé a intentar cuando lo resuelva.' });
+  }
   enviarJson(res, 500, { error: 'No se pudo completar la operación por un error interno. No se guardó nada de esta acción. Probá de nuevo; si sigue, avisá al administrador.' });
 }
 

@@ -12,12 +12,12 @@ destino = Path(sys.argv[1]).resolve()
 destino.mkdir(parents=True, exist_ok=True)
 package = json.loads((root / 'package.json').read_text(encoding='utf-8'))
 package['scripts'] = {k: v for k, v in package['scripts'].items()
-                      if k in {'start', 'backup', 'restore', 'crear-taller', 'recuperar-acceso'}}
+                      if k in {'start', 'backup', 'respaldo-diario', 'restore', 'crear-taller', 'recuperar-acceso'}}
 files = [root / 'servidor.cjs']
 for folder in ('server', 'public'):
     files.extend(p for p in (root / folder).rglob('*') if p.is_file())
 files.extend(root / 'scripts' / name for name in
-             ('backup.js', 'restore.js', 'crear-taller.js', 'recuperar-acceso.js'))
+             ('backup.js', 'respaldo-diario.js', 'restore.js', 'crear-taller.js', 'recuperar-acceso.js'))
 files = sorted(files)
 entries = {}
 for file in files:

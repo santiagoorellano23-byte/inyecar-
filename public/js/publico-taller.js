@@ -1,6 +1,6 @@
 // Página pública voluntaria del taller y solicitud de turno (queda sin confirmar hasta que el taller la confirma).
-import { api } from './api.js?v=0.6.2';
-import { esc, campo, casilla, alEnviar, icono, aviso } from './ui.js?v=0.6.2';
+import { api } from './api.js?v=0.6.3';
+import { esc, campo, casilla, alEnviar, icono, aviso } from './ui.js?v=0.6.3';
 
 const slug = location.pathname.split('/')[2];
 const main = document.getElementById('contenido');

@@ -26,8 +26,19 @@ Reemplaza la subida manual del ZIP. La URL y el usuario del alojamiento no van e
 
 - Base SQLite, fotos y adjuntos: en `INYECAR_DATOS`, fuera de la carpeta del código. El servidor no arranca si esa carpeta queda dentro de lo que el despliegue reemplaza (`server/config.js`).
 - Variables de entorno: guardadas en hPanel; los builds no las tocan.
-- Respaldos: el cron del alojamiento corre `scripts/backup.js` desde la versión publicada (`hbuilds/current/nodejs`) y escribe en su carpeta propia, también fuera del código. Por eso el paquete de `produccion` tiene que seguir trayendo `scripts/backup.js` y `restore.js`.
+- Respaldos: el cron del alojamiento corre `scripts/respaldo-diario.js` desde la versión publicada (`hbuilds/current/nodejs`) y escribe en `respaldos/`, junto a la carpeta de datos y también fuera del código. Por eso el paquete de `produccion` tiene que seguir trayendo `scripts/respaldo-diario.js`, `backup.js` y `restore.js`.
 - Las migraciones son aditivas: una versión nueva abre los datos de la anterior.
+- Una foto se escribe y se fuerza al disco antes de registrarla; recién entonces el servidor responde y la interfaz la marca guardada. Si el disco está lleno responde 507 «No se guardó: el servidor se quedó sin espacio» y no queda un archivo a medias.
+- Nada se borra solo: archivar marca el registro y lo conserva; el historial queda hasta que un usuario autorizado lo elimine.
+
+## Respaldos
+
+- **Diario** (`npm run respaldo-diario`, cron 06:30 UTC = 03:30 en Argentina): copia consistente de la base (API de respaldo de SQLite) y de los archivos privados, con manifiesto y huellas. La copia se restaura en una carpeta aislada para comprobarla; solo entonces queda como `respaldo-…` con `verificado.json`. Recién después se borran las copias diarias comprobadas que excedan las últimas 7.
+- **Si falla** (falta de espacio, archivo dañado, base inaccesible): no se borra ninguna copia anterior, la copia nueva queda como `fallido-…`, la salida del cron muestra el error y el panel deja de indicar un respaldo reciente a las 36 h.
+- **Una sola ejecución a la vez**: candado `respaldos/.respaldo-en-curso` (uno de más de 6 h se considera abandonado).
+- **Antes de migrar**: si la versión nueva trae migraciones para una base con datos, al arrancar crea `previo-migracion-…` comprobada y conserva las últimas 5. Sin esa copia no migra ni arranca.
+- **Límite**: un respaldo diario no cubre lo cargado después de la última copia. Ante una pérdida total se pierde, como máximo, lo de ese día.
+- **Copia independiente**: las copias viven en la misma cuenta y el mismo servidor que los datos. No protegen de perder la cuenta o el servidor; para eso hace falta una copia diaria fuera de Hostinger (ver `privado/` para la propuesta vigente).
 
 ## Comprobar qué está publicado
 

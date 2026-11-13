@@ -3,9 +3,10 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { abrirBase, uno } from './db.js';
+import { abrirBase, uno, migracionesPendientes } from './db.js';
 import { Enrutador, crearManejador, servirEstatico } from './http.js';
-import { config, archivoBase } from './config.js';
+import { config, archivoBase, carpetaArchivos } from './config.js';
+import { respaldoPrevioAMigrar } from './respaldo.js';
 import { documentoPublico } from './routes/documentos.js';
 import { enviarArchivo } from './routes/adjuntos.js';
 import { json } from './util.js';
@@ -82,8 +83,28 @@ export function crearServidor({ archivo = archivoBase() } = {}) {
   return servidor;
 }
 
+// Si la versión nueva trae migraciones para una base con datos, primero deja una copia comprobada.
+// Sin esa copia no migra ni arranca: preferimos el sitio caído a una base modificada sin respaldo.
+async function respaldarAntesDeMigrar(archivo) {
+  const pendientes = migracionesPendientes(archivo);
+  if (!pendientes.length) return;
+  const opciones = { archivoBase: archivo, carpetaArchivos: carpetaArchivos(), destino: path.join(path.dirname(config.datos), 'respaldos') };
+  for (let intento = 1; ; intento++) {
+    try {
+      const { dir } = await respaldoPrevioAMigrar(opciones);
+      console.log(`Respaldo previo a migrar (${pendientes.join(', ')}) en ${dir}`);
+      return;
+    } catch (e) {
+      // Si justo corre el respaldo diario, se espera a que termine.
+      if (!/en curso/.test(e.message) || intento >= 10) throw new Error('No se pudo respaldar antes de migrar; no se tocó la base. ' + e.message);
+      await new Promise((r) => setTimeout(r, 30e3));
+    }
+  }
+}
+
 // Arranque: `npm start` (node server/index.js) o el archivo de entrada del alojamiento (servidor.cjs).
-export function arrancar() {
+export async function arrancar() {
+  await respaldarAntesDeMigrar(archivoBase());
   const servidor = crearServidor();
   const n = uno(servidor.db, 'SELECT COUNT(*) AS n FROM talleres').n;
   servidor.listen(config.puerto, config.host, () => {
@@ -97,4 +118,4 @@ export function arrancar() {
   return servidor;
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] || '').href) arrancar();
+if (import.meta.url === pathToFileURL(process.argv[1] || '').href) arrancar().catch((e) => { console.error('No se pudo arrancar la plataforma:', e.message); process.exit(1); });

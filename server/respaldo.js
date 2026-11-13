@@ -27,10 +27,10 @@ function conteos(db, nombres = null) {
   return Object.fromEntries(tablas.map((t) => [t, db.prepare(`SELECT COUNT(*) AS n FROM ${t}`).get().n]));
 }
 
-export async function crearRespaldo({ archivoBase, carpetaArchivos, destino }) {
+export async function crearRespaldo({ archivoBase, carpetaArchivos, destino, prefijo = 'respaldo' }) {
   if (!fs.existsSync(archivoBase)) throw new Error('No existe la base de datos a respaldar: ' + archivoBase);
   const marca = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  const dir = path.join(destino, `respaldo-${marca}-${crypto.randomBytes(3).toString('hex')}`);
+  const dir = path.join(destino, `${prefijo}-${marca}-${crypto.randomBytes(3).toString('hex')}`);
   fs.mkdirSync(path.join(dir, 'archivos'), { recursive: true });
   const origen = new DatabaseSync(archivoBase, { readOnly: true });
   try { await backup(origen, path.join(dir, 'inyecar.db')); } finally { origen.close(); }
@@ -80,3 +80,68 @@ export function restaurarRespaldo({ respaldo, destinoDatos, reemplazar = false }
   const coincide = JSON.stringify(datos) === JSON.stringify(man.base.conteos);
   return { integridad, relacionesRotas: fk.length, conteos: datos, coincideConManifiesto: coincide, archivosDanados: faltan, adjuntosSinArchivo: sinArchivo, ok: integridad === 'ok' && !fk.length && coincide && !faltan.length && !sinArchivo.length };
 }
+
+function tamanio(p) {
+  if (!fs.existsSync(p)) return 0;
+  const s = fs.statSync(p);
+  return s.isDirectory() ? fs.readdirSync(p).reduce((t, n) => t + tamanio(path.join(p, n)), 0) : s.size;
+}
+
+// Respaldo + restauración de prueba en una carpeta aislada. Solo una copia comprobada queda como «respaldo-…»;
+// si algo falla se renombra «fallido-…», no cuenta como respaldo y no habilita borrar las anteriores.
+export async function respaldoVerificado({ archivoBase, carpetaArchivos, destino, prefijo = 'respaldo', tipo }) {
+  fs.mkdirSync(destino, { recursive: true });
+  // Copia + verificación ocupan dos veces los datos; sin ese lugar no se empieza.
+  const necesario = 2 * (tamanio(archivoBase) + tamanio(carpetaArchivos)) + 20e6;
+  const { bavail, bsize } = fs.statfsSync(destino);
+  if (bavail * bsize < necesario) throw new Error(`Espacio insuficiente para respaldar: hacen falta ${Math.ceil(necesario / 1e6)} MB y quedan ${Math.floor(bavail * bsize / 1e6)} MB. No se borró ninguna copia anterior.`);
+  const { dir, manifiesto } = await crearRespaldo({ archivoBase, carpetaArchivos, destino, prefijo });
+  const prueba = path.join(destino, `.verificacion-${path.basename(dir)}`);
+  let verificacion;
+  try { verificacion = restaurarRespaldo({ respaldo: dir, destinoDatos: prueba }); }
+  catch (e) { verificacion = { ok: false, error: e.message }; }
+  finally { fs.rmSync(prueba, { recursive: true, force: true }); }
+  if (!verificacion.ok) {
+    fs.renameSync(dir, path.join(destino, path.basename(dir).replace(prefijo, 'fallido')));
+    throw new Error('El respaldo nuevo no pasó la verificación: ' + JSON.stringify(verificacion));
+  }
+  fs.writeFileSync(path.join(dir, 'verificado.json'), JSON.stringify({ tipo, verificado: new Date().toISOString(), conteos: verificacion.conteos }, null, 1));
+  return { dir, manifiesto, verificacion };
+}
+
+// Borra las copias comprobadas de un tipo que excedan la retención. Nunca toca otras carpetas.
+export function aplicarRetencion({ destino, prefijo = 'respaldo', tipo, conservar }) {
+  const comprobadas = fs.readdirSync(destino, { withFileTypes: true })
+    .filter((e) => e.isDirectory() && e.name.startsWith(prefijo + '-'))
+    .map((e) => e.name)
+    .filter((n) => { try { return JSON.parse(fs.readFileSync(path.join(destino, n, 'verificado.json'), 'utf8')).tipo === tipo; } catch { return false; } })
+    .sort().reverse();
+  const borrar = comprobadas.slice(conservar);
+  for (const n of borrar) fs.rmSync(path.join(destino, n), { recursive: true, force: true });
+  return { conservadas: comprobadas.slice(0, conservar), borradas: borrar };
+}
+
+// Una sola ejecución por carpeta: el candado es un directorio (creación atómica). Uno de más de 6 h se considera abandonado.
+export async function conCandado(destino, fn) {
+  fs.mkdirSync(destino, { recursive: true });
+  const candado = path.join(destino, '.respaldo-en-curso');
+  try { fs.mkdirSync(candado); }
+  catch (e) {
+    if (e.code !== 'EEXIST') throw e;
+    if (Date.now() - fs.statSync(candado).mtimeMs < 6 * 3600e3) throw new Error('Ya hay un respaldo en curso; esta ejecución no hace nada.');
+    fs.rmSync(candado, { recursive: true, force: true });
+    fs.mkdirSync(candado);
+  }
+  try { return await fn(); } finally { fs.rmSync(candado, { recursive: true, force: true }); }
+}
+
+export const respaldoDiario = ({ archivoBase, carpetaArchivos, destino, conservar = 7 }) => conCandado(destino, async () => {
+  const r = await respaldoVerificado({ archivoBase, carpetaArchivos, destino, tipo: 'diario' });
+  return { ...r, retencion: aplicarRetencion({ destino, tipo: 'diario', conservar }) };
+});
+
+// Antes de aplicar migraciones a una base con datos: copia comprobada aparte («previo-migracion-…»), se conservan las últimas 5.
+export const respaldoPrevioAMigrar = ({ archivoBase, carpetaArchivos, destino, conservar = 5 }) => conCandado(destino, async () => {
+  const r = await respaldoVerificado({ archivoBase, carpetaArchivos, destino, prefijo: 'previo-migracion', tipo: 'previo-migracion' });
+  return { ...r, retencion: aplicarRetencion({ destino, prefijo: 'previo-migracion', tipo: 'previo-migracion', conservar }) };
+});

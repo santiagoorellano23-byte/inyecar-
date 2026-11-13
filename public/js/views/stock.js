@@ -1,6 +1,6 @@
 // Stock: existencias que cambian solo por movimientos (compras, colocaciones, ventas, devoluciones y ajustes).
-import { get, post, put } from '../api.js?v=0.6.2';
-import { esc, icono, pesos, cant, fechaHora, chip, campo, alEnviar, toast, aviso, aEntradaDinero, aEntradaCant } from '../ui.js?v=0.6.2';
+import { get, post, put } from '../api.js?v=0.6.3';
+import { esc, icono, pesos, cant, fechaHora, chip, campo, alEnviar, toast, aviso, aEntradaDinero, aEntradaCant } from '../ui.js?v=0.6.3';
 
 const TIPOS = { inicial: 'Existencia inicial', compra: 'Compra recibida', devolucion_proveedor: 'Devolución al proveedor', venta: 'Venta de mostrador', anulacion_venta: 'Anulación de venta', devolucion_cliente: 'Devolución de cliente', consumo: 'Usado en un trabajo', reintegro_consumo: 'Reintegro por corrección', ajuste: 'Ajuste' };
 

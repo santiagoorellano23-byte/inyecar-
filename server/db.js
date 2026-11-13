@@ -15,10 +15,23 @@ export function abrirBase(archivo) {
   return db;
 }
 
+export const listaMigraciones = () => fs.readdirSync(MIGRACIONES).filter((f) => f.endsWith('.sql')).sort();
+
+// Migraciones que faltan aplicar sobre una base que ya tiene datos (vacío si la base es nueva). No la modifica.
+export function migracionesPendientes(archivo) {
+  if (!fs.existsSync(archivo)) return [];
+  const db = new DatabaseSync(archivo, { readOnly: true });
+  try {
+    if (!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='migraciones'").get()) return [];
+    const hechas = new Set(db.prepare('SELECT nombre FROM migraciones').all().map((r) => r.nombre));
+    return hechas.size ? listaMigraciones().filter((f) => !hechas.has(f)) : [];
+  } finally { db.close(); }
+}
+
 function migrar(db) {
   db.exec('CREATE TABLE IF NOT EXISTS migraciones (nombre TEXT PRIMARY KEY, aplicada_at TEXT NOT NULL)');
   const hechas = new Set(db.prepare('SELECT nombre FROM migraciones').all().map((r) => r.nombre));
-  const archivos = fs.readdirSync(MIGRACIONES).filter((f) => f.endsWith('.sql')).sort();
+  const archivos = listaMigraciones();
   for (const f of archivos) {
     if (hechas.has(f)) continue;
     const sql = fs.readFileSync(path.join(MIGRACIONES, f), 'utf8');

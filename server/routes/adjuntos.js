@@ -33,7 +33,15 @@ export function guardarArchivo(ctx, { ambito, visitaId = null, vehiculoId = null
   const rel = path.join(String(ctx.taller.id), isoAhora().slice(0, 7), `${crypto.randomBytes(12).toString('hex')}.${tipo.ext}`);
   const destino = path.join(carpetaArchivos(), rel);
   fs.mkdirSync(path.dirname(destino), { recursive: true });
-  fs.writeFileSync(destino, buf, { flag: 'wx' });
+  // Se escribe y se fuerza al disco antes de registrarlo: la interfaz solo confirma una foto que ya quedó guardada.
+  // Si falla (por ejemplo, disco lleno) no queda un archivo a medias.
+  const fd = fs.openSync(destino, 'wx');
+  try {
+    try { fs.writeFileSync(fd, buf); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+  } catch (e) {
+    fs.rmSync(destino, { force: true });
+    throw e;
+  }
   try {
     return insertar(ctx.db, 'INSERT INTO adjuntos (taller_id, ambito, visita_id, vehiculo_id, nombre_original, mime, bytes, ruta, sha256, descripcion, creado_por, creado_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       ctx.taller.id, ambito, visitaId, vehiculoId, nombre, mime, buf.length, rel.split(path.sep).join('/'), sha, descripcion, ctx.usuario.id, isoAhora());

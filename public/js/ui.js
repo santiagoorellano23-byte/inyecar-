@@ -1,6 +1,6 @@
 // Ayudas de interfaz: formato, estados con palabra e ícono, formularios con errores claros, avisos y confirmaciones.
-import { icono } from './iconos.js?v=0.6.2';
-import { iniciarMovimiento, entrada, retirar } from './movimiento.js?v=0.6.2';
+import { icono } from './iconos.js?v=0.6.3';
+import { iniciarMovimiento, entrada, retirar } from './movimiento.js?v=0.6.3';
 iniciarMovimiento();
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

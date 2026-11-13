@@ -1,13 +1,13 @@
 // Secciones de la visita. Cada una devuelve { html, enlazar(raiz) } y vuelve a dibujar con datos del servidor tras cada acción.
-import { api, get, post, put, claveDeEnvio } from '../api.js?v=0.6.2';
+import { api, get, post, put, claveDeEnvio } from '../api.js?v=0.6.3';
 import {
   esc, icono, pesos, cant, km, fecha, fechaHora, cuando, chip, chipRespuesta, chipEtapa, ETAPAS, TIPO_LINEA, MEDIOS, UNIDADES, CANALES, campo, opcionesRadio, casilla,
   alEnviar, toast, confirmar, aviso, aEntradaDinero, aEntradaCant, copiar, numeroEntrada, revisarPago
-} from '../ui.js?v=0.6.2';
-import { qrSVG } from '../qr-util.js?v=0.6.2';
-import {catalogoPresupuesto,enlazarCatalogoPresupuesto} from '../presupuesto-pos.js?v=0.6.2';
-import {normalizar} from '../seleccion-rapida.js?v=0.6.2';
-import {vistaHallazgos,enlazarHallazgos} from '../hallazgos.js?v=0.6.2';
+} from '../ui.js?v=0.6.3';
+import { qrSVG } from '../qr-util.js?v=0.6.3';
+import {catalogoPresupuesto,enlazarCatalogoPresupuesto} from '../presupuesto-pos.js?v=0.6.3';
+import {normalizar} from '../seleccion-rapida.js?v=0.6.3';
+import {vistaHallazgos,enlazarHallazgos} from '../hallazgos.js?v=0.6.3';
 
 const resp = (l) => l.respuesta?.respuesta || (l.autorizada_ingreso ? 'autoriza' : null);
 const RESULTADOS = [['resuelto', 'Resuelto y comprobado', 'check'], ['mejoro', 'Mejoró, pero falta resolver', 'alerta'], ['no_reproducido', 'No se pudo reproducir el problema', 'info'], ['pendiente', 'Sigue pendiente', 'reloj']];

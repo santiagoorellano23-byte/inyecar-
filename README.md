@@ -1,6 +1,6 @@
 # INYECAR · gestión para talleres
 
-Versión 0.6.2. Aplicación web para recibir vehículos, organizar órdenes, registrar revisión, presupuesto y autorización, repuestos, trabajo, control, cobros y entrega.
+Versión 0.6.3. Aplicación web para recibir vehículos, organizar órdenes, registrar revisión, presupuesto y autorización, repuestos, trabajo, control, cobros y entrega.
 
 ## Requisitos y demostración
 
@@ -19,7 +19,7 @@ Abrir http://127.0.0.1:3000. La demostración usa exclusivamente datos ficticios
 npm test
 ```
 
-La entrega 0.6.2 pasó 86 pruebas automáticas. Cubren permisos, aislamiento por taller, recepción, idempotencia, presupuestos, cobros, stock, archivos, migraciones y respaldo/restauración.
+La entrega 0.6.3 pasó 90 pruebas automáticas. Cubren permisos, aislamiento por taller, recepción, idempotencia, presupuestos, cobros, stock, archivos, migraciones y respaldo/restauración.
 
 ## Operación
 
@@ -41,7 +41,8 @@ Crear el taller con npm run crear-taller. Las invitaciones y recuperaciones son 
 ## Respaldos y actualizaciones
 
 ```sh
-npm run backup
+npm run respaldo-diario            # tarea diaria: copia comprobada, conserva 7
+npm run backup                     # copia suelta, sin retención
 npm run restore -- /ruta/respaldo --destino /ruta/nueva
 python scripts/empaquetar-hostinger.py /ruta/salida
 ```
