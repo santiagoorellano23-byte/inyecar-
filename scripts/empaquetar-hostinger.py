@@ -1,7 +1,9 @@
 """Paquete de ejecución con lista permitida; nunca incluye bases, pruebas o claves."""
 import hashlib
 import json
+import os
 from pathlib import Path
+import re
 import sys
 import zipfile
 
@@ -29,7 +31,12 @@ for file in files:
     entries[rel] = file.read_bytes()
 entries['package.json'] = (json.dumps(package, ensure_ascii=False, indent=2) + '\n').encode()
 manifest = {name: hashlib.sha256(data).hexdigest() for name, data in sorted(entries.items())}
-entries['entrega.json'] = (json.dumps({'version': package['version'], 'archivos': manifest}, indent=2) + '\n').encode()
+# El despliegue automático pasa el commit de main para que /salud diga qué código está publicado.
+commit = os.environ.get('INYECAR_COMMIT', '')
+if commit and not re.fullmatch(r'[0-9a-f]{40}', commit):
+    raise RuntimeError(f'INYECAR_COMMIT inválido: {commit}')
+entrega = {'version': package['version'], **({'commit': commit} if commit else {}), 'archivos': manifest}
+entries['entrega.json'] = (json.dumps(entrega, indent=2) + '\n').encode()
 zip_path = destino / f"INYECAR-{package['version']}-hostinger.zip"
 with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
     for name, data in sorted(entries.items()):

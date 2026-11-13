@@ -1,0 +1,63 @@
+name: Publicar en Hostinger
+# Cada push a main corre las pruebas, arma el paquete de ejecución (el mismo que el ZIP manual)
+# y lo deja como un commit nuevo en la rama `produccion`. Hostinger está conectado a esa rama
+# y redespliega solo. Después se espera a que /salud informe el commit publicado.
+# Para volver atrás: Actions → «Publicar en Hostinger» → Run workflow con el commit anterior de main.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Commit de main a publicar (vacío = el último). Sirve para volver a una versión anterior.'
+        required: false
+concurrency:
+  group: publicar-hostinger
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit || github.sha }}
+          fetch-depth: 0
+      - name: El commit pertenece a main
+        run: git merge-base --is-ancestor HEAD origin/main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm test
+      - name: Armar paquete
+        run: |
+          echo "COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          INYECAR_COMMIT="$(git rev-parse HEAD)" python3 scripts/empaquetar-hostinger.py "$RUNNER_TEMP/zip"
+          mkdir "$RUNNER_TEMP/paquete"
+          unzip -q "$RUNNER_TEMP"/zip/INYECAR-*-hostinger.zip -d "$RUNNER_TEMP/paquete"
+      - name: Commit nuevo en la rama produccion
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          export GIT_INDEX_FILE="$RUNNER_TEMP/indice"
+          git --work-tree="$RUNNER_TEMP/paquete" add -A
+          arbol=$(git write-tree)
+          padre=$(git rev-parse -q --verify origin/produccion || true)
+          version=$(node -p "require('./package.json').version")
+          nuevo=$(git commit-tree "$arbol" ${padre:+-p "$padre"} -m "INYECAR $version desde main $COMMIT")
+          git push origin "$nuevo:refs/heads/produccion"
+          echo "Rama produccion → $nuevo (main $COMMIT)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Esperar a que /salud informe el commit
+        env:
+          URL: ${{ vars.INYECAR_URL }}
+        run: |
+          if [ -z "$URL" ]; then echo "::warning::Falta la variable INYECAR_URL; no se comprobó /salud."; exit 0; fi
+          for i in $(seq 1 60); do
+            r=$(curl -fsS --max-time 10 "$URL/salud" || true)
+            if echo "$r" | grep -q "\"commit\":\"$COMMIT\""; then echo "/salud: $r" | tee -a "$GITHUB_STEP_SUMMARY"; exit 0; fi
+            sleep 15
+          done
+          echo "::error::/salud no informó el commit $COMMIT en 15 minutos. Última respuesta: $r"
+          exit 1

@@ -25,6 +25,8 @@ import rutasReportes from './routes/reportes.js';
 
 const PUBLICO = path.join(config.raiz, 'public');
 const VERSION = JSON.parse(fs.readFileSync(path.join(config.raiz, 'package.json'), 'utf8')).version;
+// El paquete publicado trae entrega.json; si vino del despliegue automático, incluye el commit de main.
+const COMMIT = (() => { try { const c = JSON.parse(fs.readFileSync(path.join(config.raiz, 'entrega.json'), 'utf8')).commit; return /^[0-9a-f]{40}$/.test(c) ? c : null; } catch { return null; } })();
 const { renderDocumento, ESTILO_DOCUMENTO } = await import(pathToFileURL(path.join(PUBLICO, 'js', 'documento.js')).href);
 
 export function crearServidor({ archivo = archivoBase() } = {}) {
@@ -66,7 +68,7 @@ export function crearServidor({ archivo = archivoBase() } = {}) {
       let ok = true;
       try { uno(db, 'SELECT 1 AS uno'); } catch { ok = false; }
       res.writeHead(ok ? 200 : 503, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
-      res.end(JSON.stringify({ ok, version: VERSION }));
+      res.end(JSON.stringify({ ok, version: VERSION, ...(COMMIT ? { commit: COMMIT } : {}) }));
       return true;
     }
     if (/^\/t\/[a-z0-9-]{2,60}\/?$/.test(p)) { servirEstatico(res, PUBLICO, '/taller.html'); return true; }

@@ -50,6 +50,8 @@ Antes de actualizar: generar y descargar un respaldo actual, comprobar su restau
 
 Después de publicar: comprobar /salud, iniciar sesión y revisar los datos existentes. La emulación móvil no sustituye la aceptación en teléfono físico, cámara y teclado.
 
+Publicación automática: cada push a `main` pasa las pruebas, arma este mismo paquete en la rama `produccion` y Hostinger lo despliega. Ver `docs/DESPLIEGUE.md` (comprobación de /salud con el commit y cómo volver a una versión anterior).
+
 ## Estructura
 
 server/ contiene reglas, permisos, rutas y migraciones; public/ la interfaz y recursos locales; scripts/ las utilidades; test/ las pruebas. PRODUCT.md y DESIGN.md conservan las decisiones de producto y diseño.
