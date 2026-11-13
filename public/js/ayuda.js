@@ -1,6 +1,6 @@
 // Ayuda por tarea: pasos cortos con ejemplos ficticios. Documentación propia, funciona sin proveedor de IA.
-import { esc, icono } from './ui.js?v=0.6.1';
-import { entrada, retirar } from './movimiento.js?v=0.6.1';
+import { esc, icono } from './ui.js?v=0.6.2';
+import { entrada, retirar } from './movimiento.js?v=0.6.2';
 
 export const ARTICULOS = [
   { id: 'guia', titulo: 'Primeros pasos en el panel', pantallas: ['hoy', 'mas'], pasos: ['Hoy muestra los autos que están en el taller y qué falta en cada uno.', 'Tocá «Abrir visita» para ver el trabajo de un auto y su próximo paso.', 'Con «Recibir un auto» registrás un ingreso nuevo.', 'Autos y clientes sirve para buscar por patente, nombre o teléfono.', 'Pendientes reúne próximos services y trabajos que el cliente dejó para más adelante.', 'Lo demás (agenda, cobros, stock, compras, reportes) está en «Más funciones».'], ejemplo: 'Ejemplo ficticio: buscá «AE482KJ» y abrí la visita del Toyota Etios.' },

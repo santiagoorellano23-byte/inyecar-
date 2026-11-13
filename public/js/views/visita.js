@@ -1,9 +1,9 @@
 // Visita: cabecera, próximo paso, pestañas por área y columna de contexto (contacto y actividad).
-import { get, post, put, claveDeEnvio } from '../api.js?v=0.6.1';
-import { esc, icono, patente, nombreAuto, chipSituacion, chip, cuando, fecha, fechaHora, km, pesos, campo, alEnviar, toast, confirmar, aviso } from '../ui.js?v=0.6.1';
-import { seccionRevision, seccionPresupuesto, seccionTrabajo, seccionControl, seccionCobros, seccionArchivos } from './visita-partes.js?v=0.6.1';
-import {dimensionesHTML,resumenOrden,puedeOfrecerCobro} from '../orden-presentacion.js?v=0.6.1';
-import {vistaEstadoIngreso} from '../estado-ingreso.js?v=0.6.1';
+import { get, post, put, claveDeEnvio } from '../api.js?v=0.6.2';
+import { esc, icono, patente, nombreAuto, chipSituacion, chip, cuando, fecha, fechaHora, km, pesos, campo, alEnviar, toast, confirmar, aviso } from '../ui.js?v=0.6.2';
+import { seccionRevision, seccionPresupuesto, seccionTrabajo, seccionControl, seccionCobros, seccionArchivos } from './visita-partes.js?v=0.6.2';
+import {dimensionesHTML,resumenOrden,puedeOfrecerCobro} from '../orden-presentacion.js?v=0.6.2';
+import {vistaEstadoIngreso} from '../estado-ingreso.js?v=0.6.2';
 
 const resp = (l) => l.respuesta?.respuesta || (l.autorizada_ingreso ? 'autoriza' : null);
 const SECCIONES = [
@@ -93,7 +93,7 @@ export default async function visita({ params, app }) {
     despues(raiz) {
       parte?.enlazar(raiz.querySelector('[data-seccion-cuerpo]'));
       raiz.querySelector('[data-registrar]')?.addEventListener('click',async()=>{
-        const {hayCambiosSinGuardar}=await import('../ui.js?v=0.6.1');
+        const {hayCambiosSinGuardar}=await import('../ui.js?v=0.6.2');
         if(hayCambiosSinGuardar()){toast('Terminá o cancelá el formulario abierto antes de registrar otra cosa.',{error:true});return;}
         const d=document.createElement('dialog');d.className='dialogo';d.setAttribute('aria-labelledby','registrar-titulo');
         const opciones=[...(app.puede('revision.registrar')?[['revision','Hallazgo de revisión']]:[]),...(app.puede('repuestos.gestionar')?[['repuestos','Repuesto que falta']]:[]),...(app.puede('adjuntos.subir')?[['historial','Nota interna'],['archivos','Foto o archivo']]:[])];

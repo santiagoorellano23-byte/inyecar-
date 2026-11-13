@@ -1,6 +1,6 @@
 // Ajustes del taller (solo dueño): datos y página pública, usuarios, catálogos, conexiones externas, datos y registro.
-import { get, post, put, api } from '../api.js?v=0.6.1';
-import { esc, icono, pesos, cant, fechaHora, chip, campo, casilla, alEnviar, toast, confirmar, aviso, copiar, aEntradaDinero, aEntradaCant } from '../ui.js?v=0.6.1';
+import { get, post, put, api } from '../api.js?v=0.6.2';
+import { esc, icono, pesos, cant, fechaHora, chip, campo, casilla, alEnviar, toast, confirmar, aviso, copiar, aEntradaDinero, aEntradaCant } from '../ui.js?v=0.6.2';
 
 const SECC = [['taller', 'Datos y página pública', 'config.taller'], ['usuarios', 'Usuarios', 'usuarios.gestionar'], ['catalogos', 'Servicios y plantillas', 'config.taller'], ['integraciones', 'Conexiones externas', 'config.taller'], ['datos', 'Exportación y respaldo', 'exportar'], ['registro', 'Registro de acciones', 'auditoria.ver']];
 const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];

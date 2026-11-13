@@ -1,5 +1,5 @@
-import {esc,icono,pesos,aEntradaDinero} from './ui.js?v=0.6.1';
-import {opcionesPresupuesto,categoriasPresentes,categoriaDe,normalizar} from './seleccion-rapida.js?v=0.6.1';
+import {esc,icono,pesos,aEntradaDinero} from './ui.js?v=0.6.2';
+import {opcionesPresupuesto,categoriasPresentes,categoriaDe,normalizar} from './seleccion-rapida.js?v=0.6.2';
 
 export function catalogoPresupuesto(cat) {
   const items=opcionesPresupuesto(cat),categorias=categoriasPresentes(items);

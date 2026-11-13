@@ -1,6 +1,6 @@
 // Compras: registrar, recibir (entra al stock una sola vez), vincular remito/factura, devolver, pagar al proveedor.
-import { get, post, claveDeEnvio } from '../api.js?v=0.6.1';
-import { esc, icono, pesos, cant, fecha, fechaHora, chip, campo, casilla, alEnviar, toast, confirmar, aviso, MEDIOS, hoyLocal } from '../ui.js?v=0.6.1';
+import { get, post, claveDeEnvio } from '../api.js?v=0.6.2';
+import { esc, icono, pesos, cant, fecha, fechaHora, chip, campo, casilla, alEnviar, toast, confirmar, aviso, MEDIOS, hoyLocal } from '../ui.js?v=0.6.2';
 
 const EST = { borrador: ['Sin recibir', 'ambar', 'reloj'], recibida: ['Recibida', 'verde', 'check'], anulada: ['Anulada', 'rojo', 'ban'] };
 const filaCompra = (articulos) => `<div class="linea-form" data-linea style="grid-template-columns:minmax(0,1fr)"><div class="fila-campos">

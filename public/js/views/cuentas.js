@@ -1,6 +1,6 @@
 // Cuentas de clientes: lo que debe cada uno (o tiene a favor) según sus movimientos.
-import { get } from '../api.js?v=0.6.1';
-import { esc, icono, pesos, fechaHora, chip, MEDIOS } from '../ui.js?v=0.6.1';
+import { get } from '../api.js?v=0.6.2';
+import { esc, icono, pesos, fechaHora, chip, MEDIOS } from '../ui.js?v=0.6.2';
 
 const TIPO = { cargo: 'Liquidación / venta', pago: 'Pago', devolucion_dinero: 'Devolución de dinero', nota_credito: 'Nota de crédito', anulacion: 'Anulación' };
 

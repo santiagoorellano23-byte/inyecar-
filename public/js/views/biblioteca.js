@@ -1,6 +1,6 @@
 // Biblioteca técnica propia: manuales, diagramas y apuntes que el taller tiene derecho a usar.
-import { get, api, post } from '../api.js?v=0.6.1';
-import { esc, icono, fecha, campo, casilla, alEnviar, toast, confirmar, aviso } from '../ui.js?v=0.6.1';
+import { get, api, post } from '../api.js?v=0.6.2';
+import { esc, icono, fecha, campo, casilla, alEnviar, toast, confirmar, aviso } from '../ui.js?v=0.6.2';
 
 export default async function biblioteca({ query, app }) {
   const q = new URLSearchParams();

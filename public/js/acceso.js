@@ -1,6 +1,6 @@
 // Invitación o recuperación: el token viaja en el fragmento (#), que el navegador no envía en enlaces ni registros.
-import { api } from './api.js?v=0.6.1';
-import { esc, campo, alEnviar, icono } from './ui.js?v=0.6.1';
+import { api } from './api.js?v=0.6.2';
+import { esc, campo, alEnviar, icono } from './ui.js?v=0.6.2';
 
 const caja = document.getElementById('caja');
 const token = location.hash.slice(1);

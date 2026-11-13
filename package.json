@@ -1,6 +1,6 @@
 {
   "name": "inyecar-plataforma",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "private": true,
   "description": "Plataforma de gestión para talleres mecánicos. INYECAR Salinas es el primer taller configurado.",
   "type": "module",
