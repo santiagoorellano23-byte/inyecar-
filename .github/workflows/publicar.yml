@@ -2,15 +2,21 @@ name: Publicar en Hostinger
 # Cada push a main corre las pruebas, arma el paquete de ejecución (el mismo que el ZIP manual)
 # y lo deja como un commit nuevo en la rama `produccion`. Hostinger está conectado a esa rama
 # y redespliega solo. Después se espera a que /salud informe el commit publicado.
-# Para volver atrás: Actions → «Publicar en Hostinger» → Run workflow con el commit anterior de main.
+# Para volver atrás: Actions → «Publicar en Hostinger» → Run workflow con el commit anterior de main
+# y «volver_atras» marcado. Detalle en docs/DESPLIEGUE.md.
 on:
   push:
     branches: [main]
   workflow_dispatch:
     inputs:
       commit:
-        description: 'Commit de main a publicar (vacío = el último). Sirve para volver a una versión anterior.'
+        description: 'Commit de main a publicar (vacío = el último).'
         required: false
+      volver_atras:
+        description: 'Permitir publicar un commit anterior al que ya está publicado.'
+        type: boolean
+        default: false
+# Una publicación por vez; las que llegan mientras tanto esperan en fila (GitHub deja solo la más nueva).
 concurrency:
   group: publicar-hostinger
   cancel-in-progress: false
@@ -20,24 +26,53 @@ jobs:
   publicar:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      URL: ${{ vars.INYECAR_URL }}
     steps:
+      - name: Falta la dirección de /salud
+        if: ${{ vars.INYECAR_URL == '' }}
+        run: |
+          echo "::error::Falta la variable INYECAR_URL (Settings → Secrets and variables → Actions → Variables). No se publica sin poder comprobar /salud."
+          exit 1
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.commit || github.sha }}
           fetch-depth: 0
-      - name: El commit pertenece a main
-        run: git merge-base --is-ancestor HEAD origin/main
+      - name: Elegir qué publicar
+        id: guardia
+        run: |
+          COMMIT=$(git rev-parse HEAD)
+          echo "COMMIT=$COMMIT" >> "$GITHUB_ENV"
+          git merge-base --is-ancestor "$COMMIT" origin/main || { echo "::error::$COMMIT no está en main."; exit 1; }
+          # Un push viejo que llega tarde no publica: ya hay una ejecución para el commit más nuevo de main.
+          if [ "${{ github.event_name }}" = "push" ] && [ "$(git rev-parse origin/main)" != "$COMMIT" ]; then
+            echo "::notice::main ya avanzó a $(git rev-parse --short origin/main); esta ejecución no publica $COMMIT."
+            echo "publicar=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          # Nunca reemplazar una versión más nueva salvo que se pida volver atrás a propósito.
+          publicado=$(git show origin/produccion:entrega.json 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("commit",""))' 2>/dev/null || true)
+          if [ -n "$publicado" ] && ! git merge-base --is-ancestor "$publicado" "$COMMIT"; then
+            if [ "${{ inputs.volver_atras }}" != "true" ]; then
+              echo "::error::Publicado: $publicado. $COMMIT es anterior o de otra línea. Para volver atrás usá Run workflow con «volver_atras»."
+              exit 1
+            fi
+            echo "::warning::Volviendo atrás de $publicado a $COMMIT por pedido explícito."
+          fi
+          echo "publicar=si" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
+        if: steps.guardia.outputs.publicar == 'si'
         with:
           node-version: '24'
-      - run: npm test
+      - if: steps.guardia.outputs.publicar == 'si'
+        run: npm test
       - name: Armar paquete
+        if: steps.guardia.outputs.publicar == 'si'
         run: |
-          echo "COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
-          INYECAR_COMMIT="$(git rev-parse HEAD)" python3 scripts/empaquetar-hostinger.py "$RUNNER_TEMP/zip"
+          INYECAR_COMMIT="$COMMIT" python3 scripts/empaquetar-hostinger.py "$RUNNER_TEMP/zip"
           mkdir "$RUNNER_TEMP/paquete"
           unzip -q "$RUNNER_TEMP"/zip/INYECAR-*-hostinger.zip -d "$RUNNER_TEMP/paquete"
       - name: Commit nuevo en la rama produccion
+        if: steps.guardia.outputs.publicar == 'si'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -47,17 +82,18 @@ jobs:
           padre=$(git rev-parse -q --verify origin/produccion || true)
           version=$(node -p "require('./package.json').version")
           nuevo=$(git commit-tree "$arbol" ${padre:+-p "$padre"} -m "INYECAR $version desde main $COMMIT")
+          # Sin --force: si otra ejecución movió produccion mientras tanto, el push se rechaza.
           git push origin "$nuevo:refs/heads/produccion"
           echo "Rama produccion → $nuevo (main $COMMIT)" >> "$GITHUB_STEP_SUMMARY"
       - name: Esperar a que /salud informe el commit
-        env:
-          URL: ${{ vars.INYECAR_URL }}
+        if: steps.guardia.outputs.publicar == 'si'
         run: |
-          if [ -z "$URL" ]; then echo "::warning::Falta la variable INYECAR_URL; no se comprobó /salud."; exit 0; fi
+          r=""
           for i in $(seq 1 60); do
             r=$(curl -fsS --max-time 10 "$URL/salud" || true)
             if echo "$r" | grep -q "\"commit\":\"$COMMIT\""; then echo "/salud: $r" | tee -a "$GITHUB_STEP_SUMMARY"; exit 0; fi
             sleep 15
           done
-          echo "::error::/salud no informó el commit $COMMIT en 15 minutos. Última respuesta: $r"
+          echo "::error::/salud no informó el commit $COMMIT en 15 minutos. Última respuesta: ${r:-sin respuesta}"
+          echo "/salud NO confirmó $COMMIT. Última respuesta: ${r:-sin respuesta}" >> "$GITHUB_STEP_SUMMARY"
           exit 1
