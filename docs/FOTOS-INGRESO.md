@@ -14,7 +14,9 @@ Originales JPG/PNG/WEBP hasta 15 MB por archivo, sin compresión ni edición aut
 
 El paso 2 pasó al diseño A: tres controles fijos (Tablero, Exterior, Daños) con cámara y alternativa «Galería», miniaturas de 52 × 52 px por categoría con espacio reservado, y dos comprobaciones sin respuesta preseleccionada.
 
-- Tablero: «Sin alertas observadas», «Con testigos encendidos» (pide cuáles y el estado del motor: encendido, solo en contacto o no arranca) o «No enciende el tablero» (pide por qué). Que el tablero no encienda no se registra como que el motor no arranca.
+- Tablero: «Sin alertas observadas», «Con testigos encendidos» (qué testigos y el estado del motor, encendido o solo en contacto, son opcionales desde 0.6.4) o «No enciende» (pide qué pasa al dar contacto; la foto del tablero sigue siendo obligatoria). Que el tablero no encienda no se registra como que el motor no arranca. Los registros anteriores con «No arranca» se siguen mostrando.
+- «Continuar» con datos pendientes (0.6.4): cada control marca lo suyo («Falta», «Elegí una opción.», «Falta describir dónde está el daño.», «Marcá la verificación para continuar.»), la barra inferior dice el primero y cuántos más hay, «Ir» lleva hasta él y la pantalla va al primero. Antes de intentar, la barra resume lo pendiente sin rojo.
+- Contadores por fila: Tablero «0 de 1», Exterior «N de 4 vistas», Daños «Si hay» u «Obligatoria». «+» aparece cuando la fila ya tiene fotos.
 - Carrocería e interior: «Sin daños visibles observados» queda registrado sin escribirlo. «Con daños previos» muestra un registro por daño, con descripción y sus fotos. Tocar «Daños» marca «Con daños previos» y crea el daño. Si se cancela la cámara, se deshace esa declaración automática.
 - Pasar a «Sin daños» con daños cargados no borra nada: avisa y no deja continuar hasta resolverlo.
 - Exterior exige al menos una foto. Frente, atrás y laterales solo se sugieren; no se afirma qué ángulo muestra cada imagen.
@@ -27,7 +29,7 @@ El paso 2 pasó al diseño A: tres controles fijos (Tablero, Exterior, Daños) c
 **Formato 2 del registro** (`version: 2`):
 - `danos: [{n, descripcion, fotos:[ids]}]`;
 - cada foto de daño lleva `dano` (posición) y su descripción se arma en el servidor;
-- `motor` solo con testigos;
+- `motor` solo con testigos, y puede quedar vacío (`null`); `testigos` es opcional con testigos y obligatorio con «No enciende»;
 - `observaciones` puede quedar vacía.
 
 El servidor rechaza:

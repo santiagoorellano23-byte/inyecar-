@@ -110,7 +110,7 @@ function leerCuerpo(req, limite) {
 }
 
 // Crea el manejador principal. `opciones.publico` sirve archivos estáticos; `seguro` agrega Secure a la cookie.
-export function crearManejador({ db, enrutador, publico, seguro, extras }) {
+export function crearManejador({ db, enrutador, publico, seguro, extras, version }) {
   return async function manejar(req, res) {
     cabecerasSeguridad(res);
     const url = new URL(req.url, 'http://local');
@@ -121,7 +121,7 @@ export function crearManejador({ db, enrutador, publico, seguro, extras }) {
         const hecho = await extras(req, res, url);
         if (hecho) return;
       }
-      return servirEstatico(res, publico, ruta);
+      return servirEstatico(res, publico, ruta, !!version && url.searchParams.get('v') === version);
     } catch (e) {
       responderError(res, e);
     }
@@ -224,7 +224,7 @@ const TIPOS = {
   '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.json': 'application/json',
   '.txt': 'text/plain; charset=utf-8', '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2'
 };
-export function servirEstatico(res, raiz, ruta) {
+export function servirEstatico(res, raiz, ruta, versionado = false) {
   let rel = decodeURIComponent(ruta);
   if (rel === '/' || rel === '') rel = '/index.html';
   const archivo = path.normalize(path.join(raiz, rel));
@@ -240,8 +240,10 @@ export function servirEstatico(res, raiz, ruta) {
   res.writeHead(200, {
     'Content-Type': TIPOS[ext] || 'application/octet-stream',
     'Content-Length': st.size,
-    // Código y estilos se revalidan siempre (una actualización no deja pantallas viejas); fuentes e imágenes se guardan.
-    'Cache-Control': ['.woff2', '.png', '.jpg', '.svg', '.ico'].includes(ext) ? 'public, max-age=86400' : 'no-cache'
+    // Pedido con ?v= de la versión publicada: el contenido no cambia nunca bajo esa dirección, así que el CDN y el
+    // navegador lo guardan un año. Sin versión (o con otra), código y estilos se revalidan; fuentes e imágenes, un día.
+    // Las páginas HTML siempre se revalidan, para que una actualización no deje pantallas viejas.
+    'Cache-Control': versionado && ext !== '.html' ? 'public, max-age=31536000, immutable' : ['.woff2', '.png', '.jpg', '.svg', '.ico'].includes(ext) ? 'public, max-age=86400' : 'no-cache'
   });
   fs.createReadStream(archivo).pipe(res);
 }

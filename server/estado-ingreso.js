@@ -17,9 +17,10 @@ export function validarEstadoIngreso(ctx, e) {
   // Formato 2 (panel rápido): la observación general es opcional y cada foto de daño apunta a su daño.
   const v2=e.version===2;
   const observaciones=v2?opcional(e.observaciones,2000)||'':requerido(e.observaciones,'Describí el estado visible del auto al ingresar.','ingresoObservaciones',2000);
-  const testigos=e.tablero==='sin_testigos'?'':requerido(e.testigos,e.tablero==='no_enciende'?'Explicá por qué no enciende el tablero.':'Detallá los testigos encendidos o por qué no se puede encender el tablero.','ingresoTestigos',1000);
-  const motor=v2&&e.tablero==='con_testigos'?e.motor:null;
-  if(v2&&e.tablero==='con_testigos'&&!MOTOR.includes(motor))falla('Indicá si el motor está encendido, solo en contacto o no arranca.','ingresoMotor');
+  // Formato 2: con testigos, qué testigos y el estado del motor son opcionales; «No enciende» siempre se explica.
+  const testigos=e.tablero==='sin_testigos'?'':v2&&e.tablero==='con_testigos'?opcional(e.testigos,1000)||'':requerido(e.testigos,e.tablero==='no_enciende'?'Explicá qué pasa al dar contacto.':'Detallá los testigos encendidos o por qué no se puede encender el tablero.','ingresoTestigos',1000);
+  const motor=v2&&e.tablero==='con_testigos'&&e.motor!=null&&e.motor!==''?e.motor:null;
+  if(motor!==null&&!MOTOR.includes(motor))falla('Revisá el estado del motor: encendido, solo en contacto o no arranca.','ingresoMotor');
   let danos=[];
   if(v2){
     if(!Array.isArray(e.danos)||e.danos.length>8)falla('Revisá los daños previos registrados.','carroceria');

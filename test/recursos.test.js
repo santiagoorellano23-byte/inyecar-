@@ -31,3 +31,19 @@ test('cada página y módulo carga recursos de la misma entrega, incluidas las v
   assert.ok(referencias > 40);
   assert.ok(fs.readFileSync(path.join(root, 'public/js/app.js'), 'utf8').includes('views/${r.modulo}.js?v=' + version));
 });
+
+test('solo los recursos de la versión publicada se guardan en caché; las páginas siempre se revalidan', async () => {
+  const { levantar } = await import('./entorno.js');
+  const E = await levantar({ sembrarDatos: false });
+  try {
+    const version = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../package.json', import.meta.url)), 'utf8')).version;
+    const cache = async (ruta) => (await fetch(E.base + ruta)).headers.get('cache-control');
+    assert.equal(await cache(`/js/app.js?v=${version}`), 'public, max-age=31536000, immutable');
+    assert.equal(await cache(`/css/app.css?v=${version}`), 'public, max-age=31536000, immutable');
+    // Una versión futura o vieja nunca queda fijada: el CDN podría guardar contenido equivocado bajo esa dirección.
+    assert.equal(await cache('/js/app.js?v=9.9.9'), 'no-cache');
+    assert.equal(await cache('/js/app.js'), 'no-cache');
+    assert.equal(await cache(`/index.html?v=${version}`), 'no-cache');
+    assert.equal(await cache('/'), 'no-cache');
+  } finally { await E.cerrar(); }
+});

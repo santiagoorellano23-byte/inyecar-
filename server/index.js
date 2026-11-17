@@ -77,7 +77,7 @@ export function crearServidor({ archivo = archivoBase() } = {}) {
     return false;
   }
 
-  const manejador = crearManejador({ db, enrutador: r, publico: PUBLICO, seguro: config.seguro, extras });
+  const manejador = crearManejador({ db, enrutador: r, publico: PUBLICO, seguro: config.seguro, extras, version: VERSION });
   const servidor = http.createServer(manejador);
   servidor.db = db;
   return servidor;

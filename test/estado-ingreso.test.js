@@ -75,12 +75,18 @@ const subirDetalle=async(cliente,clave,n)=>{const token=crypto.randomUUID(),crud
 const v2=e=>({version:2,clave:e.clave,fotos:e.fotos.map(({id,tipo})=>({id,tipo})),carroceria:'sin_danos',tablero:'sin_testigos',danos:[],confirmado:true});
 test('Formato 2: sin daños se registra sin escribirlo y el tablero distingue testigos, motor y tablero apagado',async()=>{
  const e=v2(await fotosPrueba(dueno)),n=contar();
- for(const mal of [{...e,tablero:'con_testigos',testigos:'ABS (ficticio)'},{...e,tablero:'con_testigos',testigos:'ABS',motor:'acelerado'},{...e,tablero:'no_enciende'},{...e,danos:[{descripcion:'Rayón (ficticio)'}]},{...e,fotos:[...e.fotos.slice(0,1),{...e.fotos[1],dano:0}]}])
+ for(const mal of [{...e,tablero:'con_testigos',testigos:'ABS',motor:'acelerado'},{...e,tablero:'no_enciende'},{...e,danos:[{descripcion:'Rayón (ficticio)'}]},{...e,fotos:[...e.fotos.slice(0,1),{...e.fotos[1],dano:0}]}])
   assert.equal((await dueno.pedir('POST','/api/visitas',{...cuerpo(),estadoIngreso:mal})).estado,400);
  assert.deepEqual(contar(),n);
  const r=await dueno.post('/api/visitas',{...cuerpo(),estadoIngreso:{...e,tablero:'con_testigos',testigos:'Check engine (ficticio)',motor:'no_arranca'}}),estado=r.visita.recepcion.estadoIngreso;
  assert.equal(estado.version,2);assert.equal(estado.carroceria,'sin_danos');assert.equal(estado.observaciones,'');assert.equal(estado.motor,'no_arranca');assert.deepEqual(estado.danos,[]);
  assert.deepEqual(estado.fotos.map(f=>f.descripcion),['Tablero al ingresar','Exterior al ingresar']);
+});
+test('Formato 2: con testigos, el detalle y el motor son opcionales; no enciende sigue pidiendo explicación',async()=>{
+ const e=v2(await fotosPrueba(dueno));
+ assert.equal((await dueno.pedir('POST','/api/visitas',{...cuerpo(),estadoIngreso:{...e,tablero:'no_enciende',testigos:' '}})).estado,400);
+ const r=await dueno.post('/api/visitas',{...cuerpo(),estadoIngreso:{...e,tablero:'con_testigos',testigos:'',motor:null}}),estado=r.visita.recepcion.estadoIngreso;
+ assert.equal(estado.tablero,'con_testigos');assert.equal(estado.testigos,'');assert.equal(estado.motor,null);
 });
 test('Formato 2: varios daños conservan su descripción y sus fotos; un daño sin foto o una foto sin daño no se aceptan',async()=>{
  const base=await fotosPrueba(recepcion),e=v2(base),d1=await subirDetalle(recepcion,e.clave,1),d2=await subirDetalle(recepcion,e.clave,2),d3=await subirDetalle(recepcion,e.clave,3);

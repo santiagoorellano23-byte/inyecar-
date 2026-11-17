@@ -1,1 +1,1 @@
-export {default} from './mas-propuesta.js?v=0.6.3';
+export {default} from './mas-propuesta.js?v=0.6.4';

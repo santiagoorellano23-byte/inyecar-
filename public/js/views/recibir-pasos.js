@@ -1,9 +1,9 @@
-import {get,post,claveDeEnvio} from '../api.js?v=0.6.3';
-import {esc,icono,patente,nombreAuto,fecha,campo,casilla,opcionesRadio,leerForm,alEnviar,mostrarError,limpiarErrores,toast} from '../ui.js?v=0.6.3';
-import {enlazarModelos} from './autos.js?v=0.6.3';
-import {entrada,detenerMovimiento} from '../movimiento.js?v=0.6.3';
-import {MARCAS,MOTIVOS,material,resumenMotivos,leerBorrador,guardarBorrador,borrarBorrador,borradorPara,ultimaLectura,visitaRelacionada} from '../recepcion-modelo.js?v=0.6.3';
-import {enlazarFotosIngreso} from '../estado-ingreso.js?v=0.6.3';
+import {get,post,claveDeEnvio} from '../api.js?v=0.6.4';
+import {esc,icono,patente,nombreAuto,fecha,campo,casilla,opcionesRadio,leerForm,alEnviar,mostrarError,limpiarErrores,toast} from '../ui.js?v=0.6.4';
+import {enlazarModelos} from './autos.js?v=0.6.4';
+import {entrada,detenerMovimiento} from '../movimiento.js?v=0.6.4';
+import {MARCAS,MOTIVOS,material,resumenMotivos,leerBorrador,guardarBorrador,borrarBorrador,borradorPara,ultimaLectura,visitaRelacionada} from '../recepcion-modelo.js?v=0.6.4';
+import {enlazarFotosIngreso} from '../estado-ingreso.js?v=0.6.4';
 
 const PASOS=['Auto','Estado al ingresar','Motivo','Kilometraje','Autorización','Datos opcionales','Revisión'];
 const falla=(message,campo)=>Object.assign(new Error(message),{campo});
@@ -49,11 +49,11 @@ export default async function recibir({app,query}){
         </section>
         <section data-paso="1" class="rec-etapa rec-ingreso" hidden><h2 tabindex="-1" class="sr">Estado al ingresar</h2>
           <div class="campo" data-campo="fotosIngreso"><div data-fotos-ingreso></div></div>
-          <div class="ing-bloque"><div class="ing-seg ing-seg--3">${opcionesRadio('tableroEstado',[['sin_testigos','Sin alertas observadas'],['con_testigos','Con testigos encendidos'],['no_enciende','No enciende el tablero']],'','Tablero')}</div>
-            <div class="ing-detalle" data-testigos hidden>${campo({nombre:'ingresoTestigos',etiqueta:'¿Qué testigos se ven?',requerido:true,attrs:'maxlength="1000"',placeholder:'Ej.: check engine, ABS'})}<div class="ing-seg ing-seg--3 ing-seg--chico" data-motor>${opcionesRadio('ingresoMotor',[['encendido','Motor encendido'],['contacto','Solo en contacto'],['no_arranca','No arranca']],'','Estado del motor')}</div></div></div>
-          <div class="ing-bloque"><div class="ing-seg ing-seg--2">${opcionesRadio('carroceria',[['sin_danos','Sin daños visibles observados'],['con_danos','Con daños previos']],'','Carrocería e interior')}</div><div class="ing-danos" data-danos></div>
+          <div class="ing-bloque"><div class="ing-seg ing-seg--3">${opcionesRadio('tableroEstado',[['sin_testigos','Sin alertas observadas'],['con_testigos','Con testigos encendidos'],['no_enciende','No enciende']],'','Tablero')}</div><p class="ing-falta" data-falta="tableroEstado" hidden>Elegí una opción.</p>
+            <div class="ing-detalle" data-testigos hidden>${campo({nombre:'ingresoTestigos',etiqueta:'¿Qué testigos se ven?',attrs:'maxlength="1000"',placeholder:'Ej.: check engine, ABS'})}<p class="small muted" data-testigos-nota hidden>La foto del tablero sigue siendo obligatoria, aunque esté apagado.</p><p class="ing-falta" data-falta="ingresoTestigos" hidden>Falta la explicación.</p><div class="ing-seg ing-seg--2 ing-seg--chico" data-motor>${opcionesRadio('ingresoMotor',[['encendido','Motor encendido'],['contacto','Solo en contacto']],'','Estado del motor (opcional)',{requerido:false})}</div></div></div>
+          <div class="ing-bloque"><div class="ing-seg ing-seg--2">${opcionesRadio('carroceria',[['sin_danos','Sin daños visibles observados'],['con_danos','Con daños previos']],'','Carrocería e interior')}</div><p class="ing-falta" data-falta="carroceria" hidden>Elegí una opción.</p><div class="ing-danos" data-danos></div>
             <details class="ing-aclarar" data-aclarar><summary>Aclarar zona no revisada (opcional)</summary>${campo({nombre:'ingresoObservaciones',etiqueta:'Qué no se pudo revisar o qué conviene aclarar',tipo:'textarea',attrs:'maxlength="2000" rows="2"',placeholder:'Ej.: no se revisó el baúl porque estaba cargado.'})}</details></div>
-          ${casilla('ingresoConfirmado','Verifiqué las fotos y el estado de este auto')}
+          ${casilla('ingresoConfirmado','Verifiqué las fotos y el estado de este auto')}<p class="ing-falta" data-falta="ingresoConfirmado" hidden>Marcá la verificación para continuar.</p>
           <p class="small muted">Se guarda como borrador en esta pestaña. Cuenta como recibido recién al confirmar en el paso 7.</p>
         </section>
         <section data-paso="2" class="rec-etapa" hidden><h2 tabindex="-1">¿Por qué viene?</h2><p class="rec-explica">Marcá lo que cuenta el cliente. Podés marcar varios. No es un diagnóstico.</p>
@@ -82,12 +82,12 @@ export default async function recibir({app,query}){
         <section data-paso="6" class="rec-etapa" hidden><h2 tabindex="-1">Revisá y recibí</h2><p class="rec-explica">El auto queda recibido recién cuando tocás Recibir. Podés cambiar cualquier dato.</p><div class="rec-revision" data-revision-final></div></section>
       </div>
       <aside class="rec-contexto"><h2>Recepción en preparación</h2><div data-resumen></div><ol>${PASOS.map((p,i)=>`<li data-indice="${i}">${p}</li>`).join('')}</ol><p class="small muted">Todavía no es una orden. Revisión, autorización, cobro y entrega son registros distintos.</p></aside>
-      <footer class="rec-action"><p data-estado-borrador role="status">Completá los datos para continuar.</p><div class="acciones"><button type="button" class="btn btn-texto" data-omitir hidden>Omitir</button><button type="submit" class="btn btn-primario" data-continuar>Continuar ${icono('der')}</button></div></footer>
+      <footer class="rec-action"><div class="rec-estado"><p data-estado-borrador role="status">Completá los datos para continuar.</p><button type="button" class="btn btn-texto" data-ir-falta hidden>Ir</button></div><div class="acciones"><button type="button" class="btn btn-texto" data-omitir hidden>Omitir</button><button type="submit" class="btn btn-primario" data-continuar>Continuar ${icono('der')}</button></div></footer>
     </form>
   </div>`,despues(raiz){
     const f=raiz.querySelector('#f-recibir'),q=f.querySelector('#rec-q'),resultados=f.querySelector('[data-resultados]');
     let modo=elegido?'conocido':'buscar',paso=0,volverRevision=false,motivos=[],consulta=0,consultaContacto=0,timer,ctimer,pendiente=null;
-    let fotosIngreso;const posiciones={};
+    let fotosIngreso,intentado=false;const posiciones={};
     const campos=()=>leerForm(f);
     if(draft&&!query.vehiculo&&!query.turno&&!query.patente){
       for(const [k,v] of Object.entries(draft.campos||{})){const es=[...f.elements].filter(e=>e.name===k);for(const e of es){if(e.type==='checkbox')e.checked=!!v;else if(e.type==='radio')e.checked=e.value===v;else e.value=v??'';}}
@@ -97,7 +97,33 @@ export default async function recibir({app,query}){
     const guardar=()=>{
       f.dataset.sucio='1';
       const ok=guardarBorrador(app,{fotosVersion:2,ingreso:fotosIngreso?.borrador()||ingresoInicial,campos:campos(),vehiculoId:modo==='conocido'?elegido?.id:null,modo,paso,motivos,clave:f.dataset.clave,pendiente,turnoId:turno?.id,relacionadaId:relacionada?.id});
-      f.toggleAttribute('data-sin-aviso',ok);f.querySelector('[data-estado-borrador]').textContent=pendiente?'Guardado sin confirmar. Reintentá sin cambiar los datos.':!ok?'No se pudo conservar el borrador. No cierres esta pantalla.':paso===1&&fotosIngreso?fotosIngreso.faltantes(campos()):'Borrador en esta pestaña · no cuenta como recibido.';
+      const barra=f.querySelector('[data-estado-borrador]'),ir=f.querySelector('[data-ir-falta]');
+      ir.hidden=true;delete barra.dataset.tono;
+      barra.textContent=pendiente?'Guardado sin confirmar. Reintentá sin cambiar los datos.':!ok?'No se pudo conservar el borrador. No cierres esta pantalla.':paso===1&&fotosIngreso?pintarPaso2():'Borrador en esta pestaña · no cuenta como recibido.';
+    };
+    // Paso 2: todo lo pendiente, en orden de pantalla. Antes de tocar «Continuar» se resume sin rojo;
+    // después, cada dato marca lo suyo y la barra lleva al primero.
+    const pendientesPaso2=()=>{
+      const d=campos(),p=fotosIngreso.pendientes(d.carroceria),radio=n=>f.querySelector(`[name=${n}]`),out=[...p.fotos];
+      if(!d.tableroEstado)out.push({texto:'Falta indicar el estado del tablero',corto:'tablero (estado)',destino:radio('tableroEstado'),marca:'tableroEstado',campo:'tableroEstado'});
+      if(d.tableroEstado==='no_enciende'&&!d.ingresoTestigos.trim())out.push({texto:'Falta explicar qué pasa al dar contacto',corto:'explicación',destino:f.elements.ingresoTestigos,marca:'ingresoTestigos',campo:'ingresoTestigos'});
+      if(!d.carroceria)out.push({texto:'Falta indicar carrocería e interior',corto:'carrocería',destino:radio('carroceria'),marca:'carroceria',campo:'carroceria'});
+      out.push(...p.danos.map(x=>({...x,campo:'carroceria'})),...p.espera);
+      if(!d.ingresoConfirmado)out.push({texto:'Falta marcar la verificación',corto:'confirmación',destino:f.elements.ingresoConfirmado,marca:'ingresoConfirmado',campo:'ingresoConfirmado'});
+      return out.map(x=>({campo:'fotosIngreso',...x}));
+    };
+    const pintarPaso2=()=>{
+      const lista=pendientesPaso2(),falta=m=>intentado&&lista.some(x=>x.marca===m);
+      fotosIngreso.marcarIntento(intentado);
+      for(const p of f.querySelectorAll('[data-falta]'))p.hidden=!falta(p.dataset.falta);
+      f.elements.ingresoConfirmado.closest('.check')?.classList.toggle('ing-check--falta',falta('ingresoConfirmado'));
+      f.querySelector('[data-ir-falta]').hidden=!(intentado&&lista.length);
+      f.querySelector('[data-estado-borrador]').dataset.tono=!lista.length?'ok':intentado?'error':'';
+      return !lista.length?'Todo listo para continuar.':intentado?`${lista[0].texto}${lista.length>1?` (y ${lista.length-1} más)`:''}.`:fotosIngreso.faltantes(campos());
+    };
+    const irAFalta=()=>{
+      const el=pendientesPaso2()[0]?.destino;if(!el?.isConnected)return;
+      el.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});el.focus({preventScroll:true});
     };
     // Borradores de la versión anterior guardaban las fotos sueltas; el panel los adapta.
     const ingresoInicial=draft?.ingreso||{fotos:draft?.fotos||[],danos:[]};
@@ -110,10 +136,10 @@ export default async function recibir({app,query}){
     const vistaDatos=()=>{
       const d=campos();f.querySelector('[data-nuevo-auto]').hidden=modo!=='nuevo';f.querySelector('[data-buscar-auto]').hidden=modo==='nuevo';
       f.elements.patente.disabled=!!d.sinPatente;f.elements.km.disabled=!!d.sinKm;
-      // «No enciende el tablero» pide su explicación; el estado del motor (incluido «No arranca») solo aparece con testigos.
+      // «No enciende» pide qué pasa al dar contacto; con testigos, el detalle y el estado del motor son opcionales.
       const testigos=f.elements.ingresoTestigos,noEnciende=d.tableroEstado==='no_enciende';
-      f.querySelector('[data-testigos]').hidden=!['con_testigos','no_enciende'].includes(d.tableroEstado);f.querySelector('[data-motor]').hidden=d.tableroEstado!=='con_testigos';
-      f.querySelector('[data-campo="ingresoTestigos"] label').textContent=noEnciende?'¿Por qué no enciende el tablero?':'¿Qué testigos se ven?';testigos.placeholder=noEnciende?'Ej.: batería descargada, no hay llave':'Ej.: check engine, ABS';
+      f.querySelector('[data-testigos]').hidden=!['con_testigos','no_enciende'].includes(d.tableroEstado);f.querySelector('[data-motor]').hidden=d.tableroEstado!=='con_testigos';f.querySelector('[data-testigos-nota]').hidden=!noEnciende;
+      f.querySelector('[data-campo="ingresoTestigos"] label').innerHTML=noEnciende?'¿Qué pasa al dar contacto?':'¿Qué testigos se ven? <span class="muted">(opcional)</span>';testigos.required=noEnciende;testigos.placeholder=noEnciende?'Ej.: batería descargada, sin luces':'Ej.: check engine, ABS';
       fotosIngreso?.actualizarCarroceria();
       const cabPatente=modo==='nuevo'?(d.sinPatente?'':d.patente.trim()):elegido?.patente;
       f.closest('.rec-pasos').querySelector('[data-cab-patente]').innerHTML=cabPatente&&paso>0?`<span class="rec-cab-patente" aria-label="Patente ${esc(cabPatente)}">${esc(cabPatente)}</span>`:'';
@@ -141,16 +167,7 @@ export default async function recibir({app,query}){
         if(!d.contactoId&&d.ctelefono.replace(/\D/g,'').length<6)throw falla('Revisá el teléfono del cliente.','ctelefono');
       }else if(!elegido||modo!=='conocido')throw falla('Elegí un auto o cargá uno nuevo.','vehiculoId');
       else if(elegido.visitas?.some(x=>!x.entregada_at&&!x.anulada_at))throw falla('Este auto ya tiene una orden abierta. Continuá esa orden.','vehiculoId');}
-      if(i===1){
-        fotosIngreso.validarFotos();
-        if(!d.tableroEstado)throw falla('Indicá cómo está el tablero.','tableroEstado');
-        if(d.tableroEstado==='con_testigos'&&!d.ingresoTestigos.trim())throw falla('Escribí qué testigos se ven.','ingresoTestigos');
-        if(d.tableroEstado==='con_testigos'&&!d.ingresoMotor)throw falla('Indicá si el motor está encendido, solo en contacto o no arranca.','ingresoMotor');
-        if(d.tableroEstado==='no_enciende'&&!d.ingresoTestigos.trim())throw falla('Explicá por qué no enciende el tablero.','ingresoTestigos');
-        if(!d.carroceria)throw falla('Indicá si observás daños previos.','carroceria');
-        fotosIngreso.validarDanos(d.carroceria);
-        if(!d.ingresoConfirmado)throw falla('Marcá «Verifiqué las fotos y el estado de este auto».','ingresoConfirmado');
-      }
+      if(i===1){const p=pendientesPaso2()[0];if(p)throw Object.assign(falla(p.texto+'.',p.campo),{destino:p.destino});}
       if(i===2){if(!motivos.length&&!d.relato.trim())throw falla('Elegí un motivo o escribí lo que cuenta el cliente.','relato');if(motivos.some(m=>m.id==='otro')&&!d.otro.trim())throw falla('Contá el otro motivo.','otro');}
       if(i===3&&!d.sinKm){const n=d.km.replace(/[.\s]/g,'');if(!/^\d+$/.test(n)||+n>9999999)throw falla('Escribí los kilómetros o marcá Sin lectura.','km');const ultima=ultimaLectura(elegido?.lecturas);if(modo==='conocido'&&ultima&&+n<ultima.km&&!d.kmExplicacion.trim())throw falla(`La lectura anterior es ${ultima.km} km. Explicá la diferencia.`,'kmExplicacion');}
       if(i===4){if(!d.tipo)throw falla('Elegí qué autoriza el cliente.','tipo');if(d.tipo==='revision'&&!d.revisionCosto)throw falla('Indicá si la revisión tiene costo.','revisionCosto');if((d.tipo==='service'||d.revisionCosto==='si')&&!d.autPersona.trim())throw falla('Indicá quién autorizó lo acordado.','autPersona');}
@@ -165,8 +182,9 @@ export default async function recibir({app,query}){
     const irPaso=(i,enfocar=true)=>{
       const anterior=paso;detenerMovimiento(f);
       if(enfocar)posiciones[anterior]=scrollY;
+      if(i!==anterior)intentado=false;
       paso=i;limpiarErrores(f);f.querySelectorAll('[data-paso]').forEach(s=>s.hidden=+s.dataset.paso!==i);
-      raiz.querySelectorAll('[data-progreso]').forEach(s=>s.classList.toggle('completo',+s.dataset.progreso<=i));raiz.querySelector('.rec-progreso').setAttribute('aria-valuenow',i+1);raiz.querySelector('.rec-progreso').setAttribute('aria-valuetext',PASOS[i]);raiz.querySelector('[data-paso-label]').textContent=`Paso ${i+1} de ${PASOS.length} · ${PASOS[i]}`;
+      raiz.querySelectorAll('[data-progreso]').forEach(s=>{s.classList.toggle('completo',+s.dataset.progreso<i);s.classList.toggle('actual',+s.dataset.progreso===i);});raiz.querySelector('.rec-progreso').setAttribute('aria-valuenow',i+1);raiz.querySelector('.rec-progreso').setAttribute('aria-valuetext',PASOS[i]);raiz.querySelector('[data-paso-label]').textContent=`Paso ${i+1} de ${PASOS.length} · ${PASOS[i]}`;
       f.querySelectorAll('[data-indice]').forEach(li=>li.toggleAttribute('aria-current',+li.dataset.indice===i));f.querySelector('[data-omitir]').hidden=i!==5||volverRevision;f.querySelector('[data-continuar]').type=i===6?'submit':'button';f.querySelector('[data-continuar]').innerHTML=i===6?`Recibir ${icono('check')}`:volverRevision?'Volver a revisión':`Continuar ${icono('der')}`;
       // Al volver a un paso anterior se retoma donde estaba; al avanzar se empieza arriba.
       vistaDatos();if(i===6)revisar();if(enfocar){window.scrollTo(0,i<anterior?posiciones[i]||0:0);f.querySelector(`[data-paso="${i}"] h2`).focus({preventScroll:true});}guardar();
@@ -186,15 +204,16 @@ export default async function recibir({app,query}){
     f.querySelector('[data-omitir]').onclick=()=>{try{validar(5);irPaso(6);}catch(e){mostrarError(f,e);}};
     const cq=f.querySelector('#rec-contacto-q'),cc=f.querySelector('[data-contactos]');
     cq.oninput=()=>{const n=++consultaContacto;clearTimeout(ctimer);const t=cq.value.trim();if(t.length<2){cc.innerHTML='';return;}ctimer=setTimeout(async()=>{try{const r=await get('/api/contactos?q='+encodeURIComponent(t));if(n!==consultaContacto||!f.isConnected)return;cc.innerHTML=r.contactos.slice(0,5).map(c=>`<button type="button" class="resultado" data-contacto="${c.id}"><strong>${esc(c.nombre)}</strong><span>${esc(c.telefono||'Sin teléfono')}</span><span>Reutilizar contacto</span></button>`).join('')||'<p class="small muted">Sin coincidencias. Completá los datos del cliente.</p>';cc.querySelectorAll('[data-contacto]').forEach(b=>b.onclick=()=>{const c=r.contactos.find(c=>c.id===+b.dataset.contacto);f.elements.contactoId.value=c.id;f.elements.cnombre.value=c.nombre;f.elements.ctelefono.value=c.telefono||'';f.elements.cnombre.readOnly=true;f.elements.ctelefono.readOnly=true;cc.innerHTML='';const p=f.querySelector('[data-contacto-elegido]');p.hidden=false;p.innerHTML='Contacto existente elegido. <button type="button" class="btn btn-texto">Usar otro contacto</button>';p.querySelector('button').onclick=()=>{f.elements.contactoId.value='';f.elements.cnombre.readOnly=false;f.elements.ctelefono.readOnly=false;p.hidden=true;guardar();};guardar();vistaDatos();});}catch(e){cc.innerHTML=`<p role="alert">${esc(e.message)}</p>`;}},220);};
-    // En el paso 2 el error se muestra junto al dato y lleva hasta él, sin subir al principio del formulario.
-    f.querySelector('[data-continuar]').addEventListener('click',e=>{if(paso===6)return;e.preventDefault();try{validar(paso);const siguiente=volverRevision?6:paso+1;volverRevision=false;irPaso(siguiente);}catch(e){mostrarError(f,e,{enLugar:paso===1});if(paso===1)f.querySelector('[data-estado-borrador]').textContent=e.message;}});
+    // En el paso 2 cada dato marca lo que le falta y la pantalla va hasta el primero, sin subir al principio del formulario.
+    f.querySelector('[data-continuar]').addEventListener('click',e=>{if(paso===6)return;e.preventDefault();try{validar(paso);const siguiente=volverRevision?6:paso+1;volverRevision=false;irPaso(siguiente);}catch(e){if(paso===1){intentado=true;guardar();irAFalta();}else mostrarError(f,e);}});
+    f.querySelector('[data-ir-falta]').onclick=irAFalta;
     f.addEventListener('keydown',e=>{if(e.key==='Enter'&&paso<6&&e.target.tagName==='INPUT'&&!['radio','checkbox','search'].includes(e.target.type)){e.preventDefault();f.querySelector('[data-continuar]').click();}});
     alEnviar(f,async()=>{
       if(!pendiente){try{validar(paso);}catch(e){throw e;}if(paso<6){const siguiente=volverRevision?6:paso+1;volverRevision=false;irPaso(siguiente);return false;}
-        for(let i=0;i<6;i++){try{validar(i);}catch(e){irPaso(i);throw e;}}
+        for(let i=0;i<6;i++){try{validar(i);}catch(e){irPaso(i);if(i===1){intentado=true;guardar();}throw e;}}
       }
       const d=campos();
-      const cuerpo=pendiente||{estadoIngreso:{version:2,clave:claveDeEnvio(f),...fotosIngreso.envio(d.carroceria),carroceria:d.carroceria,tablero:d.tableroEstado,testigos:d.tableroEstado==='sin_testigos'?'':d.ingresoTestigos,motor:d.tableroEstado==='con_testigos'?d.ingresoMotor:null,observaciones:d.ingresoObservaciones,confirmado:!!d.ingresoConfirmado},tipo:d.tipo,km:d.sinKm?'':d.km,sinKm:!!d.sinKm,kmExplicacion:d.kmExplicacion,responsableId:d.responsableId||null,retiro:d.retiro||null,retiroNota:d.retiroNota,prioridad:d.urgente?'alta':'normal',relacionadaId:relacionada?.id||null,turnoId:turno?.id||null,plantillaId:d.tipo==='service'?d.plantillaId||null:null,autorizacion:d.tipo==='service'?{persona:d.autPersona,importe:d.autImporte}:d.revisionCosto==='si'?{revisionConCosto:true,persona:d.autPersona,importe:d.autImporte}:{},recepcion:{motivos,otro:d.otro,relato:d.relato,autoriza:d.tipo,revisionCosto:d.revisionCosto},...(modo==='conocido'?{vehiculoId:elegido.id,...(d.quien==='otra'?{contacto:{nombre:d.dejaNombre,telefono:d.dejaTelefono}}:{})}:{vehiculo:{patente:d.sinPatente?`SIN PATENTE ${f.dataset.clave.slice(0,6).toUpperCase()}`:d.patente,marca:d.marca,modelo:d.modelo,anio:d.anio},...(d.contactoId?{contactoId:+d.contactoId}:{contacto:{nombre:d.cnombre,telefono:d.ctelefono}})})};
+      const cuerpo=pendiente||{estadoIngreso:{version:2,clave:claveDeEnvio(f),...fotosIngreso.envio(d.carroceria),carroceria:d.carroceria,tablero:d.tableroEstado,testigos:d.tableroEstado==='sin_testigos'?'':d.ingresoTestigos,motor:d.tableroEstado==='con_testigos'&&d.ingresoMotor||null,observaciones:d.ingresoObservaciones,confirmado:!!d.ingresoConfirmado},tipo:d.tipo,km:d.sinKm?'':d.km,sinKm:!!d.sinKm,kmExplicacion:d.kmExplicacion,responsableId:d.responsableId||null,retiro:d.retiro||null,retiroNota:d.retiroNota,prioridad:d.urgente?'alta':'normal',relacionadaId:relacionada?.id||null,turnoId:turno?.id||null,plantillaId:d.tipo==='service'?d.plantillaId||null:null,autorizacion:d.tipo==='service'?{persona:d.autPersona,importe:d.autImporte}:d.revisionCosto==='si'?{revisionConCosto:true,persona:d.autPersona,importe:d.autImporte}:{},recepcion:{motivos,otro:d.otro,relato:d.relato,autoriza:d.tipo,revisionCosto:d.revisionCosto},...(modo==='conocido'?{vehiculoId:elegido.id,...(d.quien==='otra'?{contacto:{nombre:d.dejaNombre,telefono:d.dejaTelefono}}:{})}:{vehiculo:{patente:d.sinPatente?`SIN PATENTE ${f.dataset.clave.slice(0,6).toUpperCase()}`:d.patente,marca:d.marca,modelo:d.modelo,anio:d.anio},...(d.contactoId?{contactoId:+d.contactoId}:{contacto:{nombre:d.cnombre,telefono:d.ctelefono}})})};
       // La persona que lo trae no reemplaza al titular del vehículo nuevo.
       if(!pendiente&&modo==='nuevo'&&d.quien==='otra')cuerpo.retiroNota=[d.retiroNota,`Lo dejó ${d.dejaNombre}${d.dejaTelefono?' · '+d.dejaTelefono:''}`].filter(Boolean).join('. ').slice(0,300);
       f.querySelector('[data-continuar]').textContent='Guardando…';

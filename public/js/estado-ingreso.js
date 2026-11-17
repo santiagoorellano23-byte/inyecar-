@@ -1,9 +1,10 @@
-import {api,get} from './api.js?v=0.6.3';
-import {esc,fechaHora,icono} from './ui.js?v=0.6.3';
+import {api,get} from './api.js?v=0.6.4';
+import {esc,fechaHora,icono} from './ui.js?v=0.6.4';
 
 export const NOMBRES_FOTO={tablero:'Tablero',exterior:'Exterior',detalle:'Detalle de daño previo'};
 const GRUPOS=[['tablero','Tablero','tablero'],['exterior','Exterior','auto'],['detalle','Daños','alerta']];
-const VACIO={tablero:'Sin fotos',exterior:'Sugeridas: frente, atrás y laterales',detalle:'Solo si declarás daños'};
+const VACIO={tablero:'Sin fotos',exterior:'Frente, atrás y laterales',detalle:'Solo si declarás daños'};
+const PENDIENTE='<svg class="i i-sm" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
 const MIME=['image/jpeg','image/png','image/webp'],MAXIMO=12,DESHACER_MS=6000;
 const falla=(mensaje,campo='fotosIngreso',destino=null)=>Object.assign(new Error(mensaje),{campo,destino});
 const plural=(n,uno,varios)=>`${n} ${n===1?uno:varios}`;
@@ -20,6 +21,8 @@ export function enlazarFotosIngreso(box,o) {
   if(sueltas.length){const d={clave:nuevoId(),descripcion:(o.inicial||[]).filter(f=>f?.tipo==='detalle').map(f=>f.descripcion).filter(Boolean).join('. ').slice(0,300)};danos.push(d);sueltas.forEach(f=>f.dano=d.clave);}
   const archivos=new Map(),vistas=new Map(),ocupadas=new Set(),avisos={};
   let recuperando=fotos.length>0,generacion=0,abierto=null,ultimoDestino=null,ultimoCierre=0,ancla=o.ancla||null,deshacer=null,carActual=null,contradiccion=null;
+  // Después de tocar «Continuar» con datos pendientes, cada control dice qué le falta.
+  let intento=false;
 
   const de=tipo=>fotos.filter(f=>f.tipo===tipo);
   const fotosDano=d=>fotos.filter(f=>f.tipo==='detalle'&&f.dano===d.clave);
@@ -31,6 +34,9 @@ export function enlazarFotosIngreso(box,o) {
   const todos=sel=>[...(box.querySelectorAll?.(sel)||[]),...(danosBox?.querySelectorAll?.(sel)||[])];
   const uno=sel=>box.querySelector?.(sel)||danosBox?.querySelector?.(sel)||null;
   const anunciar=t=>{const a=box.querySelector?.('[data-anuncio]');if(a)a.textContent=t;};
+  // «+» solo aparece cuando la fila ya tiene fotos; si no, el foco vuelve al control de arriba.
+  const focoGrupo=tipo=>{const a=uno(`[data-agregar="${tipo}"]`);return a&&!a.hidden?a:uno(`[data-tomar="${tipo}"]`);};
+  const obligatoria=tipo=>tipo!=='detalle'||carroceria.leer()==='con_danos';
 
   // ---------- Miniaturas: 52 × 52 en las filas y 44 × 44 dentro de cada daño ----------
   const textoEstado=(f,e=estado(f))=>({comprobando:'Comprobando',subiendo:'Subiendo: todavía no cuenta como guardada',guardada:'Guardada',error:f.nuevo?.error?'No se pudo reemplazar; se conserva la foto anterior':'No se subió'})[e];
@@ -57,9 +63,9 @@ export function enlazarFotosIngreso(box,o) {
   const grupo=([tipo,titulo])=>`<div class="ing-grupo" data-grupo="${tipo}"><div class="ing-grupo__cab"><strong>${titulo}</strong><span data-grupo-sub></span></div><div class="ing-grupo__fila" data-miniaturas><span class="ing-grupo__vacio" data-vacio>${VACIO[tipo]}</span><button type="button" class="ing-mini ing-mini--agregar" data-fin data-agregar="${tipo}" data-ancla="agregar-${tipo}" aria-label="Agregar otra foto: ${titulo.toLowerCase()}${tipo==='exterior'?' (sugeridas: frente, atrás y laterales)':''}">${icono('mas')}</button></div><div class="ing-grupo__msg" data-grupo-msg="${tipo}"></div></div>`;
   const pintarTile=tipo=>{
     const el=box.querySelector?.(`[data-tile="${tipo}"]`),lista=de(tipo),est=lista.map(f=>estado(f)),n=lista.filter(f=>f.id).length;
-    const [clase,texto]=recuperando&&lista.length?['comprobando','Comprobando…']:est.includes('subiendo')?['subiendo','Subiendo…']:est.includes('error')?['error','No se subió']:n?['ok',plural(n,'foto','fotos')]:tipo!=='detalle'||carroceria.leer()==='con_danos'?['req','Obligatoria']:['opt','Si hay daños'];
+    const [clase,texto]=recuperando&&lista.length?['comprobando','Comprobando…']:est.includes('subiendo')?['subiendo','Subiendo…']:est.includes('error')?['error','No se subió']:n?['ok',plural(n,'foto','fotos')]:!obligatoria(tipo)?['opt','Si hay daños']:intento&&!lista.length?['falta','Falta']:['req','Obligatoria'];
     if(!el)return;
-    el.dataset.estado=clase;el.querySelector('[data-tile-estado]').innerHTML=`${clase==='ok'?icono('check','i-sm'):clase==='error'?icono('alerta','i-sm'):clase==='subiendo'||clase==='comprobando'?'<span class="ing-giro" aria-hidden="true"></span>':''}${texto}`;
+    el.dataset.estado=clase;el.querySelector('[data-tile-estado]').innerHTML=`${clase==='ok'?icono('check','i-sm'):clase==='error'?icono('alerta','i-sm'):clase==='subiendo'||clase==='comprobando'?'<span class="ing-giro" aria-hidden="true"></span>':clase==='req'||clase==='falta'?PENDIENTE:''}${texto}`;
     el.querySelector('[data-tomar]').setAttribute('aria-label',`Tomar foto: ${GRUPOS.find(g=>g[0]===tipo)[1]}. ${texto}`);
   };
   const pintarMsg=tipo=>{
@@ -71,32 +77,39 @@ export function enlazarFotosIngreso(box,o) {
     else if(reintentables.length)el.innerHTML=`<p role="alert">${icono('alerta','i-sm')}${plural(reintentables.length,'foto no se subió','fotos no se subieron')}. Lo demás sigue guardado.</p><button type="button" class="btn btn-chico" data-reintentar-grupo="${tipo}">Reintentar</button>`;
     else if(fallidas.length)el.innerHTML=`<p role="alert">${icono('alerta','i-sm')}${esc(fallidas[0].error||'Una foto no se subió.')} Tocá la miniatura para tomarla de nuevo o quitarla.</p>`;
     else el.innerHTML=avisos[tipo]?`<p role="status">${esc(avisos[tipo])}</p>`:'';
-    if(enfocado&&!el.contains(document.activeElement))uno(`[data-agregar="${tipo}"]`)?.focus({preventScroll:true});
+    if(enfocado&&!el.contains(document.activeElement))focoGrupo(tipo)?.focus({preventScroll:true});
+  };
+  // Tablero: «0 de 1». Exterior: cuántas de las cuatro vistas sugeridas hay. Daños: obligatoria solo si se declaran.
+  const pintarSub=tipo=>{
+    const el=box.querySelector?.(`[data-grupo="${tipo}"] [data-grupo-sub]`);if(!el)return;
+    const lista=de(tipo),n=lista.filter(f=>f.id).length;
+    el.textContent=tipo==='exterior'&&n<=4?`${n} de 4 vistas`:n?plural(n,'foto','fotos'):tipo==='tablero'?'0 de 1':obligatoria(tipo)?'Obligatoria':'Si hay';
+    el.dataset.estado=lista.some(f=>estado(f)==='error')||intento&&!lista.length&&obligatoria(tipo)?'error':(tipo==='exterior'?n>=4:n>0)?'ok':'';
   };
   const pintarGrupo=tipo=>{
     const g=box.querySelector?.(`[data-grupo="${tipo}"]`),lista=de(tipo);
     if(g){
       reconciliar(g.querySelector('[data-miniaturas]'),lista);
       g.querySelector('[data-vacio]').hidden=lista.length>0;
-      const n=lista.filter(f=>f.id).length;g.querySelector('[data-grupo-sub]').textContent=n?plural(n,'guardada','guardadas'):tipo==='detalle'&&carroceria.leer()!=='con_danos'?'Si hay':'Pendiente';
-      for(const b of g.querySelectorAll('[data-agregar]'))b.setAttribute('aria-disabled',String(fotos.length>=MAXIMO||recuperando));
+      for(const b of g.querySelectorAll('[data-agregar]')){b.hidden=!lista.length;b.setAttribute('aria-disabled',String(fotos.length>=MAXIMO||recuperando));}
     }
-    pintarTile(tipo);pintarMsg(tipo);
+    pintarSub(tipo);pintarTile(tipo);pintarMsg(tipo);
   };
   const pintarDano=d=>{
     const el=danosBox?.querySelector?.(`[data-dano="${d.clave}"]`);if(!el)return;
     const lista=fotosDano(d),est=lista.map(f=>estado(f)),n=lista.filter(f=>f.id).length;
     reconciliar(el.querySelector('[data-miniaturas-dano]'),lista,true);
-    el.querySelector('[data-dano-estado]').innerHTML=est.includes('subiendo')?'<span class="ing-giro" aria-hidden="true"></span>Subiendo…':est.includes('error')?`${icono('alerta','i-sm')}No se subió`:n?`${icono('check','i-sm')}${plural(n,'foto','fotos')}`:'Falta la foto';
-    el.querySelector('[data-dano-estado]').dataset.estado=est.includes('error')?'error':n?'ok':'';
+    el.querySelector('[data-dano-estado]').innerHTML=est.includes('subiendo')?'<span class="ing-giro" aria-hidden="true"></span>Subiendo…':est.includes('error')?`${icono('alerta','i-sm')}No se subió`:n?`${icono('check','i-sm')}${plural(n,'foto','fotos')}`:intento&&!lista.length?'Falta la foto':'Sin foto todavía';
+    el.querySelector('[data-dano-estado]').dataset.estado=est.includes('error')||intento&&!lista.length?'error':n?'ok':'';
+    el.querySelector('[data-dano-falta]').hidden=!(intento&&!d.descripcion.trim());
     const q=el.querySelector('[data-dano-quitar]');if(q)q.hidden=lista.length>0;
     el.querySelector('label').textContent=`Daño ${danos.indexOf(d)+1} · ubicación y descripción`;
   };
-  const pintarFoto=f=>{pintarMini(f);pintarTile(f.tipo);pintarMsg(f.tipo);const n=box.querySelector?.(`[data-grupo="${f.tipo}"] [data-grupo-sub]`);if(n){const k=de(f.tipo).filter(x=>x.id).length;if(k)n.textContent=plural(k,'guardada','guardadas');}const d=danos.find(x=>x.clave===f.dano);if(d)pintarDano(d);};
+  const pintarFoto=f=>{pintarMini(f);pintarTile(f.tipo);pintarMsg(f.tipo);pintarSub(f.tipo);const d=danos.find(x=>x.clave===f.dano);if(d)pintarDano(d);};
   const refrescar=()=>{for(const [t] of GRUPOS)pintarGrupo(t);for(const d of danos)pintarDano(d);};
 
   // ---------- Daños previos: un registro por daño, con su texto y sus fotos ----------
-  const registro=(d,i)=>`<div class="ing-dano" data-dano="${d.clave}"><div class="campo"><label for="ing-d-${d.clave}">Daño ${i+1} · ubicación y descripción</label><input id="ing-d-${d.clave}" data-dano-desc maxlength="300" value="${esc(d.descripcion)}" placeholder="Ej.: rayón en puerta delantera derecha" autocomplete="off"></div><div class="ing-dano__fotos" data-miniaturas-dano><span data-fin class="ing-dano__estado" data-dano-estado></span></div><div class="ing-dano__acciones"><button type="button" class="btn btn-chico" data-dano-tomar data-ancla="dano-tomar-${d.clave}">${icono('camara','i-sm')}Tomar foto</button><button type="button" class="btn btn-chico" data-dano-galeria data-ancla="dano-galeria-${d.clave}" aria-label="Elegir foto del daño ${i+1} desde la galería">${icono('foto','i-sm')}Galería</button><button type="button" class="btn btn-chico btn-texto" data-dano-quitar>Quitar daño</button></div></div>`;
+  const registro=(d,i)=>`<div class="ing-dano" data-dano="${d.clave}"><div class="campo"><label for="ing-d-${d.clave}">Daño ${i+1} · ubicación y descripción</label><input id="ing-d-${d.clave}" data-dano-desc maxlength="300" value="${esc(d.descripcion)}" placeholder="Ej.: rayón en puerta delantera derecha" autocomplete="off"><p class="ing-falta" data-dano-falta hidden>Falta describir dónde está el daño.</p></div><div class="ing-dano__fotos" data-miniaturas-dano><span data-fin class="ing-dano__estado" data-dano-estado></span></div><div class="ing-dano__acciones"><button type="button" class="btn btn-chico" data-dano-tomar data-ancla="dano-tomar-${d.clave}">${icono('camara','i-sm')}Tomar foto</button><button type="button" class="btn btn-chico" data-dano-galeria data-ancla="dano-galeria-${d.clave}" aria-label="Elegir foto del daño ${i+1} desde la galería">${icono('foto','i-sm')}Galería</button><button type="button" class="btn btn-chico btn-texto" data-dano-quitar>Quitar daño</button></div></div>`;
   const renderDanos=()=>{
     if(!danosBox)return;
     const car=carroceria.leer(),cargados=danos.filter(conContenido).length;
@@ -174,7 +187,7 @@ export function enlazarFotosIngreso(box,o) {
     if(!deshacer)return;
     const {lugar,previo}=deshacer;clearTimeout(deshacer.timer);deshacer=null;
     fotos=previo.fotos;danos=previo.danos;invalidar();renderDanosSiCambia(true);refrescar();pintarMsg(lugar);
-    uno(lugar==='danos'?'[data-otro-dano],[data-resolver]':`[data-agregar="${lugar}"]`)?.focus({preventScroll:true});
+    (lugar==='danos'?uno('[data-otro-dano],[data-resolver]'):focoGrupo(lugar))?.focus({preventScroll:true});
     anunciar('Se recuperó lo quitado.');
   };
   const renderDanosSiCambia=(forzar=false)=>{
@@ -243,7 +256,7 @@ export function enlazarFotosIngreso(box,o) {
     entrada.addEventListener('input',e=>e.stopPropagation());
     entrada.addEventListener('cancel',()=>cerrar(true));
   }
-  box.querySelector?.('[data-visor]')?.addEventListener('close',()=>{if(visorOrigen?.isConnected)visorOrigen.focus({preventScroll:true});else uno('[data-agregar="tablero"]')?.focus({preventScroll:true});});
+  box.querySelector?.('[data-visor]')?.addEventListener('close',()=>{if(visorOrigen?.isConnected)visorOrigen.focus({preventScroll:true});else focoGrupo('tablero')?.focus({preventScroll:true});});
   refrescar();renderDanosSiCambia(true);
 
   const gen=generacion;
@@ -278,8 +291,27 @@ export function enlazarFotosIngreso(box,o) {
       if(!fotosDano(d).length)throw falla(`Falta la foto del daño ${i+1}.`,'carroceria',uno(`[data-dano="${d.clave}"] [data-dano-tomar]`));
     });
   };
+  // Lista completa de lo pendiente, en el orden de la pantalla. Cada punto lleva el control que lo resuelve.
+  const pendientesDetalle=car=>{
+    const fallas=[],faltan=[],espera=[],enDanos=[];
+    if(recuperando&&fotos.length)espera.push({texto:'Esperá: se están comprobando las fotos guardadas',corto:'comprobando',destino:uno('[data-tomar="tablero"]')});
+    for(const f of fotos){const e=estado(f);
+      if(e==='error')fallas.push({texto:f.nuevo?.error?`El reemplazo de la foto de ${nombre(f)} no se subió`:`Una foto de ${nombre(f)} no se subió`,corto:'foto fallida',destino:uno(`[data-grupo-msg="${f.tipo}"] [data-reintentar-grupo]`)||uno(`[data-mini="${f.clave}"]`)});
+      else if(e==='subiendo')espera.push({texto:'Esperá: una foto todavía se está subiendo',corto:'subiendo',destino:uno(`[data-mini="${f.clave}"]`)});}
+    if(!recuperando){if(!de('tablero').length)faltan.push({texto:'Falta la foto del tablero',corto:'tablero',destino:uno('[data-tomar="tablero"]')});if(!de('exterior').length)faltan.push({texto:'Falta una foto del exterior',corto:'exterior',destino:uno('[data-tomar="exterior"]')});}
+    if(car==='sin_danos'&&danos.some(conContenido))enDanos.push({texto:'Marcaste «Sin daños», pero hay daños cargados',corto:'daños',destino:uno('[data-contradiccion]')});
+    if(car==='con_danos'){
+      if(!danos.length)enDanos.push({texto:'Agregá al menos un daño',corto:'daños',destino:uno('[data-tomar="detalle"]')});
+      danos.forEach((d,i)=>{
+        if(!d.descripcion.trim())enDanos.push({texto:`Falta describir el daño ${i+1}`,corto:`daño ${i+1}`,destino:uno(`[data-dano="${d.clave}"] input`)});
+        if(!fotosDano(d).length)enDanos.push({texto:`Falta la foto del daño ${i+1}`,corto:`foto daño ${i+1}`,destino:uno(`[data-dano="${d.clave}"] [data-dano-tomar]`)});
+      });
+    }
+    return {fotos:[...fallas,...faltan],danos:enDanos,espera};
+  };
   return {
-    validarFotos,validarDanos,
+    validarFotos,validarDanos,pendientes:pendientesDetalle,
+    marcarIntento(si){if(si===intento&&!si)return;intento=si;refrescar();},
     validar(car){validarFotos();validarDanos(car);},
     actualizarCarroceria(){renderDanosSiCambia();pintarTile('detalle');pintarGrupo('detalle');},
     borrador:()=>({fotos:fotos.map(({clave,id,tipo,dano,token})=>({clave,id,tipo,dano,token,intentada:true})),danos:danos.map(({clave,descripcion})=>({clave,descripcion})),ancla}),
@@ -303,7 +335,7 @@ export function enlazarFotosIngreso(box,o) {
       scrollTo(0,a.y);uno(`[data-ancla="${a.control}"]`)?.focus({preventScroll:true});
       aviso(a.tipo==='detalle'?'detalle':a.tipo,'La página se recargó al volver de la cámara. Si la foto no aparece, tomala de nuevo.');guardar();return true;
     },
-    reiniciar(){generacion++;for(const t of vistas.keys())soltar(t);fotos=[];danos=[];archivos.clear();ocupadas.clear();recuperando=false;deshacer=null;for(const k in avisos)delete avisos[k];ancla=null;carActual=null;invalidar();refrescar();renderDanosSiCambia(true);},
+    reiniciar(){generacion++;for(const t of vistas.keys())soltar(t);fotos=[];danos=[];archivos.clear();ocupadas.clear();recuperando=false;deshacer=null;intento=false;for(const k in avisos)delete avisos[k];ancla=null;carActual=null;invalidar();refrescar();renderDanosSiCambia(true);},
     // Acciones expuestas para pruebas y para quien integre el panel.
     agregarArchivos,quitar:clave=>{const f=fotos.find(x=>x.clave===clave);if(f)quitar(f);},deshacer:restaurar,
     reemplazar:(claveFoto,file)=>{const f=fotos.find(x=>x.clave===claveFoto);if(f)agregarArchivos([file],{tipo:f.tipo,dano:f.dano,reemplaza:f.clave});},

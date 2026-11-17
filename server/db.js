@@ -10,7 +10,8 @@ export function abrirBase(archivo) {
   if (archivo !== ':memory:') fs.mkdirSync(path.dirname(archivo), { recursive: true });
   const db = new DatabaseSync(archivo);
   db.exec('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
-  if (archivo !== ':memory:') db.exec('PRAGMA journal_mode = WAL;');
+  // WAL con sincronización completa: cada confirmación llega al disco antes de responder (un corte no pierde lo confirmado).
+  if (archivo !== ':memory:') db.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;');
   migrar(db);
   return db;
 }

@@ -1,6 +1,6 @@
 // Ayuda: buscador y artículos por tarea.
-import { esc, icono } from '../ui.js?v=0.6.3';
-import { ARTICULOS, articuloHTML, buscarAyuda } from '../ayuda.js?v=0.6.3';
+import { esc, icono } from '../ui.js?v=0.6.4';
+import { ARTICULOS, articuloHTML, buscarAyuda } from '../ayuda.js?v=0.6.4';
 
 export default async function ayudaVista({ params }) {
   const a = params.id ? ARTICULOS.find((x) => x.id === params.id) : null;
