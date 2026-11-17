@@ -1,5 +1,5 @@
-import { api, post, put, claveDeEnvio } from './api.js?v=0.6.4';
-import { campo, alEnviar, esc, chip, icono, fechaHora, toast } from './ui.js?v=0.6.4';
+import { api, post, put, claveDeEnvio } from './api.js?v=0.6.5';
+import { campo, alEnviar, esc, chip, icono, fechaHora, toast } from './ui.js?v=0.6.5';
 export const GRAVEDAD = {informativo:['Informativo','azul','info'],recomendado:['Recomendado','ambar','llave'],prioritario:['Prioritario','rojo','alerta']};
 
 function formulario(v,h={}) {

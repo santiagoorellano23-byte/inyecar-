@@ -1,5 +1,5 @@
-import {api,get} from './api.js?v=0.6.4';
-import {esc,fechaHora,icono} from './ui.js?v=0.6.4';
+import {api,get} from './api.js?v=0.6.5';
+import {esc,fechaHora,icono} from './ui.js?v=0.6.5';
 
 export const NOMBRES_FOTO={tablero:'Tablero',exterior:'Exterior',detalle:'Detalle de daño previo'};
 const GRUPOS=[['tablero','Tablero','tablero'],['exterior','Exterior','auto'],['detalle','Daños','alerta']];

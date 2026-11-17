@@ -1,7 +1,7 @@
-import {get,post,claveDeEnvio} from '../api.js?v=0.6.4';
-import {esc,icono,patente,nombreAuto,fecha,campo,opcionesRadio,casilla,alEnviar,toast,aviso} from '../ui.js?v=0.6.4';
-import {camposVehiculo,enlazarModelos} from './autos.js?v=0.6.4';
-import {MOTIVOS_RAPIDOS,anexarMotivo,normalizar} from '../seleccion-rapida.js?v=0.6.4';
+import {get,post,claveDeEnvio} from '../api.js?v=0.6.5';
+import {esc,icono,patente,nombreAuto,fecha,campo,opcionesRadio,casilla,alEnviar,toast,aviso} from '../ui.js?v=0.6.5';
+import {camposVehiculo,enlazarModelos} from './autos.js?v=0.6.5';
+import {MOTIVOS_RAPIDOS,anexarMotivo,normalizar} from '../seleccion-rapida.js?v=0.6.5';
 
 function tarjeta(v,{elegida=false}={}) {
   const abierta=v.visitaAbierta||v.visitas?.find(x=>!x.entregada_at&&!x.anulada_at);

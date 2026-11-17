@@ -1,1 +1,1 @@
-export { default } from './recibir-pasos.js?v=0.6.4';
+export { default } from './recibir-pasos.js?v=0.6.5';

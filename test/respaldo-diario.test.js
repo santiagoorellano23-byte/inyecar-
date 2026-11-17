@@ -8,6 +8,19 @@ import { DatabaseSync } from 'node:sqlite';
 import { abrirBase, migracionesPendientes, listaMigraciones } from '../server/db.js';
 import { respaldoDiario, respaldoPrevioAMigrar, estadoRespaldo } from '../server/respaldo.js';
 import { responderError } from '../server/http.js';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+test('La tarea programada (backup.js sin destino) hace el respaldo diario comprobado con retención', () => {
+  const { raiz, opciones } = entorno();
+  try {
+    const script = fileURLToPath(new URL('../scripts/backup.js', import.meta.url));
+    const salida = execFileSync(process.execPath, [script], { env: { ...process.env, INYECAR_DATOS: path.dirname(opciones.archivoBase) }, encoding: 'utf8' });
+    assert.match(salida, /Respaldo diario comprobado/);
+    const [copia] = carpetas(opciones.destino).filter((n) => n.startsWith('respaldo-'));
+    assert.equal(JSON.parse(fs.readFileSync(path.join(opciones.destino, copia, 'verificado.json'), 'utf8')).tipo, 'diario');
+  } finally { fs.rmSync(raiz, { recursive: true, force: true }); }
+});
 
 function entorno() {
   const raiz = fs.mkdtempSync(path.join(os.tmpdir(), 'inyecar-diario-'));

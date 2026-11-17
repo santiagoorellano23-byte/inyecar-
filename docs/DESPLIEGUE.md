@@ -26,7 +26,8 @@ Reemplaza la subida manual del ZIP. La URL y el usuario del alojamiento no van e
 
 - Base SQLite, fotos y adjuntos: en `INYECAR_DATOS`, fuera de la carpeta del código. El servidor no arranca si esa carpeta queda dentro de lo que el despliegue reemplaza (`server/config.js`).
 - Variables de entorno: guardadas en hPanel; los builds no las tocan.
-- Respaldos: el cron del alojamiento corre `scripts/respaldo-diario.js` desde la versión publicada (`hbuilds/current/nodejs`) y escribe en `respaldos/`, junto a la carpeta de datos y también fuera del código. Por eso el paquete de `produccion` tiene que seguir trayendo `scripts/respaldo-diario.js`, `backup.js` y `restore.js`.
+- Respaldos: el cron del alojamiento (06:30 UTC) corre `scripts/backup.js` desde la versión publicada (`hbuilds/current/nodejs`) con `INYECAR_DATOS`. Desde 0.6.4, `backup.js` sin `--destino` hace exactamente el respaldo diario comprobado de `respaldo-diario.js`, así que el cron existente no necesita cambios. Escribe en `respaldos/`, junto a la carpeta de datos y fuera del código. Por eso el paquete de `produccion` tiene que seguir trayendo `scripts/respaldo-diario.js`, `backup.js` y `restore.js`.
+- Caché: los recursos pedidos con `?v=` igual a la versión publicada salen con `Cache-Control: public, max-age=31536000, immutable`, y el CDN de Hostinger y el navegador los guardan. Las páginas HTML, `/salud`, la API y las fotos privadas nunca se guardan en caché.
 - Las migraciones son aditivas: una versión nueva abre los datos de la anterior.
 - Una foto se escribe y se fuerza al disco antes de registrarla; recién entonces el servidor responde y la interfaz la marca guardada. Si el disco está lleno responde 507 «No se guardó: el servidor se quedó sin espacio» y no queda un archivo a medias.
 - Nada se borra solo: archivar marca el registro y lo conserva; el historial queda hasta que un usuario autorizado lo elimine.
