@@ -1,6 +1,6 @@
 // Más (diseño final, B): grupos de funciones según los permisos de cada persona, tu sesión y ayuda.
-import { esc } from '../ui.js?v=0.7.0';
-import { ic, ibtn } from '../diseno.js?v=0.7.0';
+import { esc } from '../ui.js?v=0.7.1';
+import { ic, ibtn } from '../diseno.js?v=0.7.1';
 export const GRUPOS_MAS = [
  ['Agenda y clientes', [
   ['agenda', 'calendar_month', 'Agenda de turnos', 'agenda.ver'],

@@ -1,8 +1,8 @@
 // Taller (diseño final, A): órdenes abiertas agrupadas por estado del trabajo, búsqueda, filtro por estado y las
 // entregadas y anuladas. El filtro queda en el enlace (#/trabajos?ver=…&estado=…) para volver al mismo lugar.
-import { get } from '../api.js?v=0.7.0';
-import { esc, chipSituacion, fecha, cuando } from '../ui.js?v=0.7.0';
-import { ic, placa, logoMarca, ibtn, vacioD } from '../diseno.js?v=0.7.0';
+import { get } from '../api.js?v=0.7.1';
+import { esc, chipSituacion, fecha, cuando } from '../ui.js?v=0.7.1';
+import { ic, placa, logoMarca, ibtn, vacioD } from '../diseno.js?v=0.7.1';
 
 const estadoDe = (v) => v.anulada_at ? 'Anulada' : v.entregada_at ? 'Entregada' : v.dimensiones?.find(([k]) => k === 'Trabajo')?.[1] || v.situacion.texto;
 const buscable = (v) => `data-patente="${esc((v.vehiculo.patente || '').replace(/\W/g, '').toLowerCase())}" data-texto="${esc((v.vehiculo.marca + ' ' + v.vehiculo.modelo + ' ' + (v.contacto || '') + ' ' + v.numero).toLowerCase())}" data-telefono="${esc((v.telefono || '').replace(/\D/g, ''))}"`;

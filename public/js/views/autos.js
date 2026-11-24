@@ -1,7 +1,7 @@
 // Autos y clientes: búsqueda por patente, nombre o teléfono; alta de auto con datos mínimos.
-import { get, post } from '../api.js?v=0.7.0';
-import { esc, fecha, campo, alEnviar, toast, confirmar } from '../ui.js?v=0.7.0';
-import { ic, placa, logoMarca, ibtn, vacioD } from '../diseno.js?v=0.7.0';
+import { get, post } from '../api.js?v=0.7.1';
+import { esc, fecha, campo, alEnviar, toast, confirmar } from '../ui.js?v=0.7.1';
+import { ic, placa, logoMarca, ibtn, vacioD } from '../diseno.js?v=0.7.1';
 
 export function opcionesMarcas() {
   const c = window.INYECAR_CATALOGOS || { marcas: [], modelos: {} };

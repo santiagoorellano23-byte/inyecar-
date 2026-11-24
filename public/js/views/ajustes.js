@@ -1,9 +1,9 @@
 // Ajustes del taller (solo dueño), dirección «Consola Grafito»: índice propio dentro del área de contenido,
 // secciones con título y explicación junto a los campos, y barra de cambios pendientes en los formularios.
 // La isla, el lateral y el encabezado global no cambian. Datos, permisos y guardado siguen siendo los del servidor.
-import { get, post, put, api, claveDeEnvio } from '../api.js?v=0.7.0';
-import { esc, icono, pesos, cant, fechaHora, chip, campo, casilla, alEnviar, limpiarErrores, toast, confirmar, aviso, copiar, aEntradaDinero, aEntradaCant, aLocal, hoyLocal } from '../ui.js?v=0.7.0';
-import { entrada } from '../movimiento.js?v=0.7.0';
+import { get, post, put, api, claveDeEnvio } from '../api.js?v=0.7.1';
+import { esc, icono, pesos, cant, fechaHora, chip, campo, casilla, alEnviar, limpiarErrores, toast, confirmar, aviso, copiar, aEntradaDinero, aEntradaCant, aLocal, hoyLocal } from '../ui.js?v=0.7.1';
+import { entrada } from '../movimiento.js?v=0.7.1';
 
 const GRUPOS = [['taller', 'El taller'], ['presencia', 'Presencia e imagen'], ['equipo', 'Equipo'], ['cuenta', 'Cuenta y datos']];
 // [ruta, grupo, nombre, permiso, ícono, descripción]. Las rutas anteriores (#/ajustes/taller, /datos, /integraciones…) siguen valiendo.

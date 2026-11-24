@@ -1,12 +1,12 @@
 // Hoy en el taller (diseño final, A): encabezado con el taller y la fecha, resumen grafito, grupos de atención,
 // alcance (todo el taller o asignado a mí) y una tarjeta por auto con su etapa, estados, responsable, retiro y
 // próximo paso. Los datos, contadores y grupos los calcula el servidor (/api/hoy).
-import { get } from '../api.js?v=0.7.0';
-import { leerBorrador, borrarBorrador } from '../recepcion-modelo.js?v=0.7.0';
-import { grupoHoy, estadoDimension } from '../orden-presentacion.js?v=0.7.0';
-import { esc, pesos, cuando, fecha, hora, haceCuanto, aLocal } from '../ui.js?v=0.7.0';
-import { ic, placa, logoMarca, etapas, ETAPAS_ORDEN, ibtn, vacioD } from '../diseno.js?v=0.7.0';
-import { marcaTaller } from '../app.js?v=0.7.0';
+import { get } from '../api.js?v=0.7.1';
+import { leerBorrador, borrarBorrador } from '../recepcion-modelo.js?v=0.7.1';
+import { grupoHoy, estadoDimension } from '../orden-presentacion.js?v=0.7.1';
+import { esc, pesos, cuando, fecha, hora, haceCuanto, aLocal } from '../ui.js?v=0.7.1';
+import { ic, placa, logoMarca, etapas, ETAPAS_ORDEN, ibtn, vacioD } from '../diseno.js?v=0.7.1';
+import { marcaTaller } from '../app.js?v=0.7.1';
 
 // Filtros heredados por enlace (#/hoy?ver=…): siguen funcionando aunque no tengan botón propio.
 const GRUPOS = { revision: ['revision', 'presupuesto'], trabajo: ['trabajo'], control: ['control', 'controlada'], autorizacion: ['autorizacion'], repuesto: ['repuesto'], lista: ['lista'] };

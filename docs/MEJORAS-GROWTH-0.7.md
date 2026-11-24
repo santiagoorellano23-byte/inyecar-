@@ -19,3 +19,7 @@ Pedido del 24/11/2026: traer a INYECAR las mejoras visuales y de uso de Growth L
 - **Compatibilidad de producción:** se mantienen `INYECAR_*`, `inyecar.db`, la cookie `iny_sesion` (las sesiones abiertas siguen valiendo), la cabecera `X-Inyecar` y las claves locales `inyecar-*` (borradores y tema guardados en los teléfonos).
 - **Fotos de ingreso:** la pantalla de Growth Labs enviaba el formato 1; ahora arma el formato 2 de INYECAR (`registroIngreso` en `public/js/estado-ingreso.js`): cada daño con su foto, motor aparte, aclaración opcional. Con testigos encendidos, cuáles son sigue siendo opcional (regla de 0.6.4). El servidor conserva qué muestra cada foto de tablero y exterior. La orden muestra los registros de los dos formatos.
 - **Correcciones propias:** al terminar una carga en segundo plano el foco vuelve al control de la foto sin mover la pantalla; al cambiar de pantalla se cierran las hojas abiertas por la anterior; se recupera la posición tras una recarga con la cámara abierta.
+
+## 0.7.1 (24/11/2026)
+
+Pulido: el resultado de Recibir con orden abierta ya no lleva raya lateral; conserva el borde ámbar y la etiqueta «Orden abierta · N.º …». Sin cambios de datos, servidor ni migraciones.

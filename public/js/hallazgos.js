@@ -1,5 +1,5 @@
-import { api, post, put, claveDeEnvio } from './api.js?v=0.7.0';
-import { campo, alEnviar, esc, chip, icono, fechaHora, toast, confirmar } from './ui.js?v=0.7.0';
+import { api, post, put, claveDeEnvio } from './api.js?v=0.7.1';
+import { campo, alEnviar, esc, chip, icono, fechaHora, toast, confirmar } from './ui.js?v=0.7.1';
 export const GRAVEDAD = {informativo:['Informativo','azul','info'],recomendado:['Recomendado','ambar','llave'],prioritario:['Prioritario','rojo','alerta']};
 
 // Hallazgos de inspección (diseño de Revisión): tarjetas con observación, criterio del técnico (la gravedad) y propuesta,

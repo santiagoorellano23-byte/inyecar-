@@ -1,6 +1,6 @@
 // Piezas de presentación del diseño final (GrowthLabs-Talleres-App-Final, 18/11/2026): íconos, patentes, marca del
 // vehículo, etiquetas de estado y encabezados de pantalla. Solo arman HTML; los datos y las acciones son los reales.
-import { esc } from './ui.js?v=0.7.0';
+import { esc } from './ui.js?v=0.7.1';
 
 // Material Symbols locales (/iconos-material, Apache 2.0) pintados con el color del texto.
 export const ic = (n, cls = '') => `<span class="material-icon ic${cls ? ' ' + cls : ''}" style="--icono:url('/iconos-material/${n}.svg')" aria-hidden="true"></span>`;

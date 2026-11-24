@@ -1,4 +1,4 @@
-import { icono } from './ui.js?v=0.7.0';
+import { icono } from './ui.js?v=0.7.1';
 const sistema = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
 let abortar;
 export function selectorTema() {

@@ -1,10 +1,10 @@
-import {get,post,claveDeEnvio} from '../api.js?v=0.7.0';
-import {esc,icono,fecha,campo,casilla,leerForm,alEnviar,mostrarError,limpiarErrores,toast,confirmar,copiar,numeroEntrada} from '../ui.js?v=0.7.0';
-import {enlazarModelos} from './autos.js?v=0.7.0';
-import {entrada,detenerMovimiento} from '../movimiento.js?v=0.7.0';
-import {MARCAS,MOTIVOS,material,resumenMotivos,leerBorrador,guardarBorrador,borrarBorrador,borradorPara,ultimaLectura,visitaRelacionada} from '../recepcion-modelo.js?v=0.7.0';
-import {enlazarFotosIngreso,FORMATOS,registroIngreso} from '../estado-ingreso.js?v=0.7.0';
-import {ic,placa as placaD,logoMarca} from '../diseno.js?v=0.7.0';
+import {get,post,claveDeEnvio} from '../api.js?v=0.7.1';
+import {esc,icono,fecha,campo,casilla,leerForm,alEnviar,mostrarError,limpiarErrores,toast,confirmar,copiar,numeroEntrada} from '../ui.js?v=0.7.1';
+import {enlazarModelos} from './autos.js?v=0.7.1';
+import {entrada,detenerMovimiento} from '../movimiento.js?v=0.7.1';
+import {MARCAS,MOTIVOS,material,resumenMotivos,leerBorrador,guardarBorrador,borrarBorrador,borradorPara,ultimaLectura,visitaRelacionada} from '../recepcion-modelo.js?v=0.7.1';
+import {enlazarFotosIngreso,FORMATOS,registroIngreso} from '../estado-ingreso.js?v=0.7.1';
+import {ic,placa as placaD,logoMarca} from '../diseno.js?v=0.7.1';
 
 const PASOS=['Auto','Estado al ingresar','Motivo','Kilometraje','Autorización','Datos opcionales','Revisión'];
 const falla=(message,campo)=>Object.assign(new Error(message),{campo});

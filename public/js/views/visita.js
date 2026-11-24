@@ -2,12 +2,12 @@
 // bloqueos, responsable y retiro) e interior B: «Ahora» con la sección que corresponde atender o la pedida por el
 // enlace, el dinero según permisos y «Toda la orden» con las demás secciones desplegables. Las secciones y sus
 // acciones son las de visita-partes.js: mismos servicios, permisos y validaciones del servidor.
-import { get, post, put, claveDeEnvio } from '../api.js?v=0.7.0';
-import { esc, chipSituacion, cuando, fecha, km, pesos, campo, alEnviar, toast, confirmar, hayCambiosSinGuardar } from '../ui.js?v=0.7.0';
-import { seccionRevision, seccionPresupuesto, seccionTrabajo, seccionControl, seccionCobros, seccionArchivos } from './visita-partes.js?v=0.7.0';
-import { resumenOrden } from '../orden-presentacion.js?v=0.7.0';
-import { vistaEstadoIngreso } from '../estado-ingreso.js?v=0.7.0';
-import { ic, placa, logoMarca, cabecera, ETAPAS_ORDEN } from '../diseno.js?v=0.7.0';
+import { get, post, put, claveDeEnvio } from '../api.js?v=0.7.1';
+import { esc, chipSituacion, cuando, fecha, km, pesos, campo, alEnviar, toast, confirmar, hayCambiosSinGuardar } from '../ui.js?v=0.7.1';
+import { seccionRevision, seccionPresupuesto, seccionTrabajo, seccionControl, seccionCobros, seccionArchivos } from './visita-partes.js?v=0.7.1';
+import { resumenOrden } from '../orden-presentacion.js?v=0.7.1';
+import { vistaEstadoIngreso } from '../estado-ingreso.js?v=0.7.1';
+import { ic, placa, logoMarca, cabecera, ETAPAS_ORDEN } from '../diseno.js?v=0.7.1';
 
 // [ruta, título, ícono]. Las rutas son las de siempre (#/visitas/:id/:seccion).
 const SECCIONES = [['resumen', 'Resumen', 'description'], ['revision', 'Revisión', 'search'], ['presupuesto', 'Presupuesto y autorizaciones', 'receipt_long'], ['trabajo', 'Trabajos', 'build'], ['repuestos', 'Repuestos', 'inventory_2'], ['control', 'Control y entrega', 'task_alt'], ['cobros', 'Dinero', 'payments'], ['archivos', 'Archivos y mensajes', 'photo_library'], ['historial', 'Historial', 'history']];
