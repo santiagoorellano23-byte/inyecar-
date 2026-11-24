@@ -40,7 +40,7 @@ export function validarEstadoIngreso(ctx, e) {
     if(!fs.existsSync(archivo)||crypto.createHash('sha256').update(fs.readFileSync(archivo)).digest('hex')!==a.sha256)falla('Una foto no está disponible o cambió en el servidor. Volvé a cargarla.','fotosIngreso');
     const base={id:a.id,tipo:a.ingreso_tipo,fecha:a.creado_at,por:ctx.usuario.nombre,sha256:a.sha256};
     if(!v2)return {...base,descripcion:requerido(f.descripcion,'Describí qué muestra cada foto.','fotosIngreso',300)};
-    if(a.ingreso_tipo!=='detalle'){if(f.dano!=null)falla('Solo las fotos de daños se asocian a un daño.','fotosIngreso');return {...base,descripcion:DESCRIPCION[a.ingreso_tipo]};}
+    if(a.ingreso_tipo!=='detalle'){if(f.dano!=null)falla('Solo las fotos de daños se asocian a un daño.','fotosIngreso');return {...base,descripcion:opcional(f.descripcion,300)||DESCRIPCION[a.ingreso_tipo]};}
     const d=Number.isSafeInteger(f.dano)?danos[f.dano]:null;
     if(!d)falla('Una foto de daño no está asociada a ningún daño. Asociala o quitala.','fotosIngreso');
     d.fotos.push(a.id);

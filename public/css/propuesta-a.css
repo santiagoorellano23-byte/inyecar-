@@ -52,7 +52,7 @@
 .rec-foto h3,.rec-foto p{margin:0}.rec-foto img{display:block;width:100%;height:200px;object-fit:contain;background:var(--surface-3);border-radius:8px}
 .rec-foto input[type=file]{width:100%;min-width:0;font-size:14px;white-space:normal}
 .rec-foto input[type=file]::file-selector-button{min-height:44px;margin-inline-end:8px;cursor:pointer}
-.rec-foto .campo{margin:0}.rec-foto figcaption{overflow-wrap:anywhere}.rec-foto small{display:block}
+.rec-foto .campo{margin:0}.rec-foto figcaption{overflow-wrap:anywhere}.rec-foto small{display:block}.estado-ingreso__danos{margin:0;padding-left:20px;display:grid;gap:6px}
 
 /* ===== Ajustes · Consola Grafito =====
    Todo bajo .ajg (pantalla) y .ajg-dlg (diálogos y paneles de Ajustes, fuera de la raíz). Los confirmar() que se abren
