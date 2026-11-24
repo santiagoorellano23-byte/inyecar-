@@ -83,8 +83,18 @@ export function enlazarFotosIngreso(box,{clave,inicial=[],guardar,danos=null,car
     return `<div class="p2-tira ${n?.estado==='error'?'aviso':''}"><button type="button" data-ver="${f.token}" aria-label="${et}${f.tipo==='tablero'?' del tablero':''}. Ver o cambiar"><img src="${src(f)}" alt="">${insignia(f)}${n?.estado==='up'?`<span class="p2-capa" role="status">${giro}</span>`:n?.estado==='error'?`<span class="p2-chk av">${ic('warning')}</span>`:`<span class="p2-chk">${ic('check')}</span>`}</button></div>`;
   }
 
+  // Qué control tenía el foco dentro de las fotos o los daños, para devolvérselo al redibujar (sin mover la pantalla):
+  // terminar una carga en segundo plano no puede dejar el foco en la nada.
+  const CLAVES_FOCO=['data-ver','data-fuente','data-cancelar','data-fuente-nueva','data-reintentar','data-dejar','data-descartar','data-quitar-dano','data-otro-dano'];
+  const selectorFoco=()=>{const a=globalThis.document?.activeElement;if(!a||!(box.contains(a)||danos?.contains(a))||a.dataset?.descripcion)return null;
+    return a.id?`#${CSS.escape(a.id)}`:CLAVES_FOCO.filter(k=>a.hasAttribute(k)).map(k=>`[${k}="${CSS.escape(a.getAttribute(k))}"]`)[0]||null;};
   const dibujar=()=>{
     if(!box.isConnected)return;
+    const sel=selectorFoco();
+    pintarFotos();
+    if(sel&&(!document.activeElement||document.activeElement===document.body))(box.querySelector(sel)||danos?.querySelector(sel))?.focus({preventScroll:true});
+  };
+  const pintarFotos=()=>{
     const X=extras(),okX=X.filter(lista).length,lleno=usadas()>=MAX_FOTOS,errX=X.find(fallida);
     box.innerHTML=`<div class="p2-fotos2" role="group" aria-label="Fotos obligatorias">${tarjeta('tablero')}${tarjeta('exterior')}</div>
       ${['tablero','exterior'].map(principal).filter(f=>f?.nuevo?.estado==='error').map(f=>avisoCambio(f)).join('')}
@@ -219,7 +229,8 @@ export function enlazarFotosIngreso(box,{clave,inicial=[],guardar,danos=null,car
     d.querySelectorAll('[data-archivo]').forEach(inp=>inp.onchange=()=>{elegido=[...inp.files];d.close();});
     d.querySelector('[data-demo]')?.addEventListener('click',async e=>{e.currentTarget.disabled=true;elegido=[await fotoDemo(tipo,++nDemo)];d.close();});
     d.addEventListener('click',e=>{if(e.target===d||e.target.closest('[data-cerrar]'))d.close();});
-    d.addEventListener('close',()=>{d.remove();if(elegido?.length){elegir(tipo,f&&fotos.includes(f)?f:null,elegido);}const destino=f&&(box.querySelector(`[data-ver="${f.token}"],[data-fuente="${f.token}"]`)||danos?.querySelector(`[data-ver="${f.token}"],[data-fuente="${f.token}"],#p2-df-${f.token}`));(destino||(origen?.isConnected?origen:box.querySelector('.p2-tira-add')))?.focus();},{once:true});
+    // Al cerrar, el foco vuelve al lugar de la foto (también mientras sube), sin desplazar la pantalla.
+    d.addEventListener('close',()=>{d.remove();if(elegido?.length){elegir(tipo,f&&fotos.includes(f)?f:null,elegido);}const destino=f&&(box.querySelector(`[data-ver="${f.token}"],[data-fuente="${f.token}"]`)||danos?.querySelector(`[data-ver="${f.token}"],[data-fuente="${f.token}"],#p2-df-${f.token}`)||(f===principal(tipo)?box.querySelector(`#p2-f-${tipo}`):null));(destino||(origen?.isConnected?origen:box.querySelector('.p2-tira-add')))?.focus({preventScroll:true});},{once:true});
     d.showModal();
   }
   // Hoja de una foto: verla, corregir qué muestra (salvo daños, que se describen en su tarjeta), cambiarla o quitarla.

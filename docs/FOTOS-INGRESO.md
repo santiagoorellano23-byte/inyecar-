@@ -10,6 +10,10 @@ El segundo paso requiere foto del tablero y foto del exterior, descripción de c
 
 Originales JPG/PNG/WEBP hasta 15 MB por archivo, sin compresión ni edición automática. El selector nativo permite elegir fotos; las opciones de cámara dependen del dispositivo. Falta comprobar cámara y teclado en teléfono físico; no se declara validada esa parte por emulación.
 
+## «¿Cómo llega?» (0.7.0, diseño de Growth Labs Talleres)
+
+Desde 0.7.0 el paso 2 usa la pantalla de Growth Labs Talleres (ver `docs/MEJORAS-GROWTH-0.7.md`): tablero y exterior con foto 4:3, más vistas del exterior, una tarjeta por daño con su descripción y su foto, hoja de origen (cámara o galería), reemplazo seguro (la anterior sigue hasta que el servidor confirma la nueva), cancelar, reintentar, quitar con «Deshacer», resumen de lo que falta y verificación que se vuelve a pedir solo ante un cambio. Las reglas de abajo siguen vigentes: formato 2, testigos opcionales con «Con testigos encendidos», «No enciende» siempre explicado, motor opcional (encendido o solo en contacto). El registro lo arma `registroIngreso()`; tablero y exterior guardan qué muestra cada foto (o el texto por defecto). Lo que sigue describe la pantalla anterior (0.6.2 a 0.6.5) y queda como historia.
+
 ## Panel rápido (propuesta A, 12/11/2026)
 
 El paso 2 pasó al diseño A: tres controles fijos (Tablero, Exterior, Daños) con cámara y alternativa «Galería», miniaturas de 52 × 52 px por categoría con espacio reservado, y dos comprobaciones sin respuesta preseleccionada.

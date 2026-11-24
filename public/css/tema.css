@@ -9,7 +9,8 @@ html[data-tema-efectivo="oscuro"] {
   --ink:#f5f6f7;--ink-2:#bcc1c8;--muted:#959ca6;
   --line:#383c43;--line-2:#2e3238;--line-strong:#6b727d;
   --red:#f4a3ad;--red-dark:#ffc2c8;--red-tint:#3a1a1e;--red-line:#a65c69;
-  --marca-texto:#c9636c;--marca-tinte:#431a21;--marca-linea:#83323b;--acento:#be363f;
+  /* Rojo INYECAR como texto en oscuro: ≥ 4,5:1 sobre las superficies y sobre su propio tinte. */
+  --marca-texto:#e27a84;--marca-tinte:#431a21;--marca-linea:#83323b;--acento:#be363f;
   /* Estados del diseño final en oscuro. */
   --amber:#f2c27a;--amber-bg:#33240f;--amber-line:#8f7046;
   --teal:#a9c6e4;--teal-bg:#1c2733;--teal-line:#4e6f8f;

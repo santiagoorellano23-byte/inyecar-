@@ -199,6 +199,9 @@ async function mostrar({ conservarScroll = false } = {}) {
   const r = interpretar();
   if (!r) { location.replace('#/hoy'); return; }
   const main = document.getElementById('contenido');
+  // Al cambiar de pantalla, las hojas y diálogos que abrió la anterior (al final del documento) no siguen abiertos.
+  // Al recargar la misma pantalla tras guardar (conservarScroll) se dejan: pueden estar mostrando un resultado.
+  if (!conservarScroll) document.querySelectorAll('body > dialog[open]').forEach((d) => d.close());
   detenerMovimiento(main);
   const scroll = window.scrollY;
   raiz.querySelectorAll('[data-seccion]').forEach((a) => { if (a.dataset.seccion === r.seccion) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
