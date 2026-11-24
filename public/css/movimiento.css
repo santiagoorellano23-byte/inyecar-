@@ -33,13 +33,16 @@
     transform: none;
   }
   .btn:not(:disabled):not([aria-disabled="true"]):not(.cargando):active {
-    transform: translateY(1px);
-    box-shadow: inset 0 1px 2px rgb(20 20 20 / .12);
+    transform: scale(.97);
+    box-shadow: none;
+    transition-duration: 60ms;
   }
   .btn-texto:not(:disabled):not([aria-disabled="true"]):active {
-    transform: none;
+    transform: scale(.97);
     box-shadow: none;
   }
+  .hoy-segmentos a { transition: background-color var(--respuesta-rapida), color var(--respuesta-rapida), border-color var(--respuesta-rapida), box-shadow var(--respuesta-rapida), transform var(--respuesta-rapida) var(--respuesta-curva); }
+  .hoy-segmentos a:active { transform: scale(.97); }
   :is(.btn:disabled, .btn[aria-disabled="true"], .btn.cargando) {
     transform: none;
     box-shadow: none;
@@ -67,10 +70,6 @@
       transform var(--respuesta-rapida) var(--respuesta-curva);
   }
   .mas-tarjeta a > .material-icon:last-child { transform: none; }
-  .tabbar--isla .isla-icono {
-    transition: transform var(--respuesta-rapida) var(--respuesta-curva);
-  }
-  .tabbar--isla a:active .isla-icono { transform: scale(.96); }
   .rec-progreso span {
     transition: background-color var(--respuesta) var(--respuesta-curva);
   }
@@ -88,24 +87,24 @@
   .mas-tarjeta a:active {
     background-color: var(--surface-3);
   }
-  .rec-motivo[aria-pressed="true"]:active { background-color: var(--red-tint); }
-  .rec-marca input:checked + span { background-color: #fff6f6; }
+  .rec-motivo[aria-pressed="true"]:active { background-color: var(--marca-tinte); }
+  .rec-marca input:checked + span { background-color: var(--marca-tinte); }
   .rec-etapa .check:has(input:checked),
   .rec-detalles .btn[aria-pressed="true"] {
     border-width: 1px;
-    box-shadow: inset 0 0 0 1px var(--red);
+    box-shadow: inset 0 0 0 1px var(--marca-texto);
   }
   .rec-motivo:disabled,
   .rec-marca:has(input:disabled) { cursor: not-allowed; }
   .rec-motivo:disabled,
   .rec-marca input:disabled + span { opacity: .6; }
   .catalogo-item:has(.catalogo-eleccion input:checked) {
-    border-color: var(--red);
-    background-color: var(--red-tint);
+    border-color: var(--marca-texto);
+    background-color: var(--marca-tinte);
   }
   .catalogo-item:has(.catalogo-eleccion input:checked) .catalogo-item__icono {
     background-color: var(--surface);
-    color: var(--red);
+    color: var(--marca-texto);
   }
 
   /* Campos: respuesta al foco y al error; sin sacudidas ni movimiento del cursor. */
@@ -114,9 +113,9 @@
       background-color var(--respuesta-rapida), box-shadow var(--respuesta-rapida);
   }
   .buscador > .i { transition: color var(--respuesta-rapida); }
-  .buscador:focus-within > .i { color: var(--red); }
+  .buscador:focus-within > .i { color: var(--marca-texto); }
   .campo > label { transition: color var(--respuesta-rapida); }
-  .campo:focus-within > label { color: var(--red); }
+  .campo:focus-within > label { color: var(--marca-texto); }
   .campo input[type="file"]::file-selector-button {
     transition: background-color var(--respuesta-rapida),
       border-color var(--respuesta-rapida), color var(--respuesta-rapida);
@@ -163,7 +162,7 @@
     .pos-producto, .volver, .toast button):focus-visible {
     transition: none;
     transform: none !important;
-    outline: 3px solid var(--red);
+    outline: 3px solid var(--marca-texto);
     outline-offset: 2px;
   }
   :is(.mas-tarjeta a, .grupo-menu a, .nav a, .tabbar a,
@@ -171,8 +170,7 @@
     outline-offset: -3px;
   }
   :is(.nav a, .grupo-menu a, .volver):focus-visible > .i,
-  .mas-tarjeta a:focus-visible > .material-icon:last-child,
-  .tabbar--isla a:focus-visible .isla-icono {
+  .mas-tarjeta a:focus-visible > .material-icon:last-child {
     transition: none;
     transform: none !important;
   }
@@ -189,15 +187,15 @@
 
 /* Hover existe solo con ratón/trackpad preciso. Los destinos de lectura quedan fijos. */
 @media screen and (hover: hover) and (pointer: fine) {
+  /* Hover: solo color y borde. Un control que se usa decenas de veces al día no se eleva. */
   .btn:not(:disabled):not([aria-disabled="true"]):not(.cargando):not(.btn-texto):not(.btn-peligro):hover {
-    transform: translateY(-1px);
+    transform: none;
     box-shadow: var(--sombra-control);
   }
-  .btn:not(:disabled):not([aria-disabled="true"]):not(.cargando):not(.btn-texto):not(.btn-peligro):active {
-    transform: translateY(1px);
-    box-shadow: inset 0 1px 2px rgb(20 20 20 / .12);
+  .btn:not(:disabled):not([aria-disabled="true"]):not(.cargando):active {
+    transform: scale(.97);
+    box-shadow: none;
   }
-  .btn-texto:not(:disabled):not([aria-disabled="true"]):active { transform: none; box-shadow: none; }
   .btn:focus-visible:hover { transform: none; }
   :is(.mas-tarjeta a, .rec-review-row, .area, .grupo-menu a):hover {
     background-color: var(--surface-2);
@@ -209,14 +207,14 @@
   .mas-tarjeta a:focus-visible:hover > .material-icon:last-child { transform: none; }
   .rec-motivo:not(:disabled):hover,
   .rec-marca:has(input:not(:disabled)):hover > span { border-color: var(--ink-2); }
-  .rec-motivo[aria-pressed="true"]:hover { border-color: var(--red); }
+  .rec-motivo[aria-pressed="true"]:hover { border-color: var(--marca-texto); }
   .rec-marca:has(input:checked):hover > span { border-color: var(--accion); }
   :is(.subnav a, .pestanas a):not([aria-current]):hover {
     border-bottom-color: var(--line-strong);
-    color: var(--red);
+    color: var(--marca-texto);
   }
   :is(.subareas a, .hoy-segmentos a):not([aria-current]):hover {
-    color: var(--red);
+    color: var(--marca-texto);
     background-color: var(--surface-2);
   }
   :is(.categoria-pos, .motivo-pos, .sugerencias button):not(:disabled):hover {
@@ -225,14 +223,14 @@
   .selector-tema:hover { background-color: var(--surface-2); border-color: var(--line-strong); }
   :is(.setup-compact, .contexto-toggle, .orden-bloqueos,
     .calculadora-inline, .motivos-opcionales, .rec-mas) > summary:hover {
-    color: var(--red);
+    color: var(--marca-texto);
     background-color: var(--surface-2);
   }
   .campo input[type="file"]::file-selector-button:hover {
     background-color: var(--surface-2);
     border-color: var(--ink-2);
   }
-  .agenda-dia > a:hover { background-color: var(--surface-2); color: var(--red); }
+  .agenda-dia > a:hover { background-color: var(--surface-2); color: var(--marca-texto); }
 }
 
 /* Los estilos anteriores contienen hover sin filtro. Evitar que queden adheridos al tocar. */
@@ -245,6 +243,33 @@
   .mas-tarjeta a:active { background-color: var(--surface-3); }
 }
 
+/* Tacto (20/11/2026): tarjetas, filtros y apartados responden al dedo con una escala breve que nunca demora
+   la navegación; desplegables y avisos acompañan el cambio de estado. Solo transform y opacidad. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  :is(.orden-f, .tarjeta, .acceso, .li-b, .filtros .filtro, .seg a, .pt-fmas, .subnav a) {
+    transition: transform 160ms var(--respuesta-curva), background-color var(--respuesta-rapida),
+      border-color var(--respuesta-rapida), color var(--respuesta-rapida), box-shadow var(--respuesta-rapida);
+  }
+  :is(.orden-f, .acceso, .li-b):active,
+  .tarjeta:has(> .t-cab:active) { transform: scale(.985); transition-duration: 60ms; }
+  :is(.filtros .filtro, .seg a, .pt-fmas, .subnav a):active { transform: scale(.96); transition-duration: 60ms; }
+  /* El chevron gira con el desplegable; el contenido aparece desde arriba sin mover lo que sigue. */
+  details.mas > summary::after { transition: transform var(--respuesta) var(--respuesta-curva), opacity var(--respuesta-rapida); }
+  details.mas[open] > .mas__cuerpo { animation: desplegar var(--respuesta) var(--respuesta-curva); }
+  /* Ilustraciones del resumen de Hoy: entran una vez al abrir la portada (no son botones: no responden al tacto). */
+  .pt-ico img { animation: ilustrar 420ms var(--respuesta-curva) both; }
+  .pt-c:nth-child(2) .pt-ico img { animation-delay: 50ms; }
+  .pt-c:nth-child(3) .pt-ico img { animation-delay: 100ms; }
+  /* Aviso de éxito: el tilde se dibuja; el de error aparece con un leve pulso, sin sacudir. */
+  .toast:not(.toast--error) > svg.i path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: trazo 320ms 90ms var(--respuesta-curva) forwards; }
+  .toast--error > svg.i { animation: pulso 260ms var(--respuesta-curva); }
+  html[data-entrada="teclado"] :is(.pt-ico img, details.mas[open] > .mas__cuerpo) { animation: none; }
+}
+@keyframes desplegar { from { opacity: 0; transform: translateY(-4px); } }
+@keyframes ilustrar { from { opacity: 0; transform: translateY(6px) scale(.94); } }
+@keyframes trazo { to { stroke-dashoffset: 0; } }
+@keyframes pulso { from { transform: scale(.8); opacity: .4; } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation: none !important;
@@ -253,14 +278,53 @@
   }
   .btn,
   :is(.nav a, .tabbar a, .grupo-menu a, .area, .volver) > .i,
-  .tabbar--isla .isla-icono,
   .mas-tarjeta a > .material-icon:last-child,
-  .rec-motivo, .rec-marca, .mas-tarjeta a {
+  .rec-motivo, .rec-marca, .mas-tarjeta a, .hoy-segmentos a {
     transform: none !important;
   }
   .grupo-menu a::after { transform: rotate(45deg) !important; }
   /* Un aro estático sigue distinguiendo el botón ocupado; texto de estado accesible en JS. */
   .btn.cargando::after { animation: none !important; }
+}
+
+/* Ajustes (Consola Grafito): botones 120 ms, menús y selecciones 160 ms, diálogos 220 ms, paneles 280 ms.
+   Solo opacidad y transformaciones; sin cascadas ni rebotes. Con movimiento reducido, la regla anterior lo apaga todo. */
+.ajg, .ajg-dlg {
+  --ajg-t-boton: 120ms; --ajg-t-menu: 160ms; --ajg-t-dialogo: 220ms; --ajg-t-panel: 280ms;
+  --ajg-curva: cubic-bezier(0.23, 1, 0.32, 1); --ajg-curva-panel: cubic-bezier(0.32, 0.72, 0, 1);
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+  :is(.ajg, .ajg-dlg) .btn {
+    transition: background-color var(--ajg-t-boton) var(--ajg-curva), border-color var(--ajg-t-boton) var(--ajg-curva),
+      color var(--ajg-t-boton) var(--ajg-curva), transform var(--ajg-t-boton) var(--ajg-curva);
+  }
+  .ajg :is(.ajg-indice a, .ajg-opt, .ajg-dia, .ajg-paleta, .ajg-lista tbody tr) {
+    transition: background-color var(--ajg-t-menu) var(--ajg-curva), border-color var(--ajg-t-menu) var(--ajg-curva),
+      color var(--ajg-t-menu) var(--ajg-curva), box-shadow var(--ajg-t-menu) var(--ajg-curva);
+  }
+  .ajg :is(.ajg-sw__pista, .ajg-sw__pista::after, .ajg-opt__punto::after) {
+    transition: transform var(--ajg-t-menu) var(--ajg-curva), background-color var(--ajg-t-menu) var(--ajg-curva), border-color var(--ajg-t-menu) var(--ajg-curva);
+  }
+  .ajg-barra {
+    transition: transform var(--ajg-t-menu) var(--ajg-curva), opacity var(--ajg-t-menu) var(--ajg-curva), visibility 0s linear var(--ajg-t-menu);
+  }
+  .ajg-barra--visible {
+    transition: transform var(--ajg-t-menu) var(--ajg-curva), opacity var(--ajg-t-menu) var(--ajg-curva), visibility 0s;
+  }
+  .ajg-panel[open] { transition: transform var(--ajg-t-panel) var(--ajg-curva-panel); }
+  .ajg-dlg--centro[open] { transition: opacity var(--ajg-t-dialogo) var(--ajg-curva), transform var(--ajg-t-dialogo) var(--ajg-curva); }
+  .ajg-dlg[open]::backdrop { transition: opacity var(--ajg-t-dialogo) var(--ajg-curva); }
+  @starting-style {
+    .ajg-panel[open] { transform: translateX(100%); }
+    .ajg-dlg--centro[open] { opacity: 0; transform: scale(0.97); }
+    .ajg-dlg[open]::backdrop { opacity: 0; }
+  }
+}
+@media screen and (prefers-reduced-motion: no-preference) and (max-width: 759.98px) {
+  @starting-style { .ajg-panel[open] { transform: translateY(100%); } }
+}
+@media screen and (hover: hover) and (pointer: fine) {
+  :is(.ajg, .ajg-dlg) .btn:not(.btn-primario):not(:disabled):hover { background-color: var(--ajg-s2); }
 }
 
 @media print {

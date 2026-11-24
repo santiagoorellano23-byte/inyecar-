@@ -1,7 +1,7 @@
 // Agenda: solicitudes online por confirmar, turnos de la semana por día y alta de turnos.
-import { get, post, claveDeEnvio } from '../api.js?v=0.6.5';
-import { esc, icono, chip, fecha, campo, alEnviar, toast, confirmar, aviso, hoyLocal, casilla } from '../ui.js?v=0.6.5';
-import { qrSVG } from '../qr-util.js?v=0.6.5';
+import { get, post, claveDeEnvio } from '../api.js?v=0.7.0';
+import { esc, icono, chip, fecha, campo, alEnviar, toast, confirmar, aviso, hoyLocal, casilla } from '../ui.js?v=0.7.0';
+import { qrSVG } from '../qr-util.js?v=0.7.0';
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const EST = { solicitado: ['Sin confirmar', 'violeta', 'reloj'], confirmado: ['Confirmado', 'verde', 'check'], cancelado: ['Cancelado', '', 'ban'], no_asistio: ['No vino', 'rojo', 'alerta'], ingresado: ['Auto recibido', 'teal', 'llave'] };
@@ -46,7 +46,7 @@ export default async function agenda({ app, query }) {
           <details class="mas"><summary>Auto y motivo (opcional)</summary><div class="mas__cuerpo"><div class="fila-campos">${campo({ nombre: 'patente', etiqueta: 'Patente' })}${campo({ nombre: 'vehiculo', etiqueta: 'Auto', placeholder: 'Marca y modelo' })}</div>${campo({ nombre: 'motivo', etiqueta: 'Motivo' })}
             ${casilla('aceptaAvisos', 'Acepta que le recordemos el turno')}</div></details>
           <div class="form-pie"><button class="btn btn-primario" type="submit">${icono('check')}Guardar turno</button><button class="btn" type="button" data-cancelar-nuevo>Cancelar</button></div></form></section>` : ''}
-      ${t.publico ? `<details class="mas"><summary>Código QR para pedir turnos online</summary><div class="mas__cuerpo">
+      ${t.publico ? `<details class="mas"><summary>${icono('qr')}Código QR para pedir turnos online</summary><div class="mas__cuerpo">
         <div class="qr-caja">${qrSVG(urlPublica)}<p class="small">${esc(urlPublica)}</p></div>
         <p class="muted small">Imprimilo para el mostrador. Lleva a la página pública del taller, donde se pide un turno que después confirmás acá. No muestra datos de clientes.</p></div></details>` : ''}
     </div>`,

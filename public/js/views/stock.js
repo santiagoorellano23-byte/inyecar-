@@ -1,6 +1,6 @@
 // Stock: existencias que cambian solo por movimientos (compras, colocaciones, ventas, devoluciones y ajustes).
-import { get, post, put } from '../api.js?v=0.6.5';
-import { esc, icono, pesos, cant, fechaHora, chip, campo, alEnviar, toast, aviso, aEntradaDinero, aEntradaCant } from '../ui.js?v=0.6.5';
+import { get, post, put } from '../api.js?v=0.7.0';
+import { esc, icono, pesos, cant, fechaHora, chip, campo, alEnviar, toast, aviso, aEntradaDinero, aEntradaCant } from '../ui.js?v=0.7.0';
 
 const TIPOS = { inicial: 'Existencia inicial', compra: 'Compra recibida', devolucion_proveedor: 'Devolución al proveedor', venta: 'Venta de mostrador', anulacion_venta: 'Anulación de venta', devolucion_cliente: 'Devolución de cliente', consumo: 'Usado en un trabajo', reintegro_consumo: 'Reintegro por corrección', ajuste: 'Ajuste' };
 
@@ -20,10 +20,10 @@ export default async function stock({ params, app }) {
           <span class="small">Existencia <strong class="num">${esc(cant(a.existencia, a.unidad))}</strong>${a.reservado ? ` · reservado ${esc(cant(a.reservado, a.unidad))}` : ''} · disponible <strong class="num">${esc(cant(a.disponible, a.unidad))}</strong></span></span>
           ${a.bajoMinimo ? chip(`Mínimo ${cant(a.minimo_m, a.unidad)}`, 'rojo', 'alerta') : ''}</a></li>`).join('')}</ul>` : '<div class="panel__cuerpo"><p class="muted">Todavía no hay artículos.</p></div>'}
       </section>
-      ${app.puede('stock.articulos') ? `<details class="mas"><summary>Agregar un artículo</summary><div class="mas__cuerpo"><form class="form" id="f-art" novalidate>
+      ${app.puede('stock.articulos') ? `<details class="mas"><summary>${icono('mas')}Agregar un artículo</summary><div class="mas__cuerpo"><form class="form" id="f-art" novalidate>
         <div class="fila-campos">${campo({ nombre: 'nombre', etiqueta: 'Nombre', requerido: true, ayuda: 'Una lista no confirma compatibilidad: verificá la aplicación de cada repuesto.' })}${campo({ nombre: 'codigo', etiqueta: 'Código' })}${campo({ nombre: 'unidad', etiqueta: 'Se cuenta en', tipo: 'select', opciones: ['u.', 'L', 'kg', 'm', 'juego', 'kit', 'par'] })}</div>
         <div class="fila-campos">${campo({ nombre: 'minimo', etiqueta: 'Avisar cuando quede', attrs: 'inputmode="decimal"' })}${campo({ nombre: 'precioVenta', etiqueta: 'Precio de venta', attrs: 'inputmode="decimal"' })}${app.puede('stock.ajustar') ? campo({ nombre: 'existenciaInicial', etiqueta: 'Existencia contada hoy', attrs: 'inputmode="decimal"' }) : ''}</div>
-        <button class="btn btn-primario" type="submit">Guardar artículo</button></form></div></details>` : ''}
+        <button class="btn btn-primario" type="submit">${icono('check')}Guardar artículo</button></form></div></details>` : ''}
     </div>`,
     despues(raiz) {
       raiz.querySelector('#st-q').addEventListener('input', (e) => { const t = e.target.value.trim().toLowerCase(); raiz.querySelectorAll('[data-texto]').forEach((li) => { li.hidden = t && !li.dataset.texto.includes(t); }); });

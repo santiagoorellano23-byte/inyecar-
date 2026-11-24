@@ -32,7 +32,8 @@ export async function api(metodo, ruta, cuerpo, { idempotencia = false, archivo 
   let datos = {};
   const tipo = res.headers.get('content-type') || '';
   if (tipo.includes('application/json')) { try { datos = await res.json(); } catch { throw sinConfirmacion(); } }
-  else if (res.ok) throw sinConfirmacion();
+  // Sin respuesta del sistema (un intermediario cortó o agotó el tiempo): no prueba que no se haya guardado.
+  else if (res.ok || res.status >= 500 || res.status === 408) throw sinConfirmacion();
   if (!res.ok) {
     if (res.status === 401 && !ruta.startsWith('/api/sesion/ingresar') && !ruta.startsWith('/api/acceso')) alPerderSesion();
     throw new ErrorApi(datos.error || `No se pudo completar (código ${res.status}).`, res.status, datos);

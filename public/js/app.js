@@ -1,10 +1,12 @@
 // Arranque del panel: sesión, navegación, rutas, ayuda contextual y aviso de cambios sin guardar.
-import { api, get, post, configurarApi } from './api.js?v=0.6.5';
-import { esc, icono, toast, confirmar, hayCambiosSinGuardar, fijarZona, campo, alEnviar } from './ui.js?v=0.6.5';
-import { abrirAyuda } from './ayuda.js?v=0.6.5';
-import { selectorTema, enlazarTema } from './tema.js?v=0.6.5';
-import {material,borrarBorrador} from './recepcion-modelo.js?v=0.6.5';
-import { entrada, detenerMovimiento } from './movimiento.js?v=0.6.5';
+import { api, get, post, configurarApi } from './api.js?v=0.7.0';
+import { esc, icono, toast, confirmar, hayCambiosSinGuardar, fijarZona, campo, alEnviar } from './ui.js?v=0.7.0';
+import { abrirAyuda } from './ayuda.js?v=0.7.0';
+import { selectorTema, enlazarTema, aplicarTema } from './tema.js?v=0.7.0';
+import { ic } from './diseno.js?v=0.7.0';
+import { borrarBorrador } from './recepcion-modelo.js?v=0.7.0';
+import { entrada, detenerMovimiento } from './movimiento.js?v=0.7.0';
+import { islaHTML, enlazarIsla, colocarIndicador } from './isla.js?v=0.7.0';
 
 // [patrón, módulo, permiso, sección del menú]
 const RUTAS = [
@@ -56,10 +58,12 @@ function grupoRuta(r) {
   return r.modulo==='ajustes'?'ajustes':null;
 }
 function submenu(r) {
-  const g=grupoRuta(r); if(!g || r.modulo==='visita'||r.modulo==='ajustes') return '';
+  const g=grupoRuta(r); if(!g || g==='taller' || r.modulo==='ajustes') return '';
   const actual=location.hash.replace(/^#\//,'').split('?')[0];
-  return `<nav class="subnav" aria-label="${g==='taller'?'Taller':g==='caja'?'Caja':g==='ajustes'?'Ajustes':'Repuestos'}">${GRUPOS[g].filter(x=>!x[2]||app.puede(x[2])).map(([ruta,nombre])=>`<a href="#/${ruta}" ${actual===ruta?'aria-current="page"':''}>${nombre}</a>`).join('')}</nav>`;
+  return `<nav class="subnav" aria-label="${g==='taller'?'Taller':g==='caja'?'Caja':g==='ajustes'?'Ajustes':'Repuestos'}">${GRUPOS[g].filter(x=>!x[2]||app.puede(x[2])).map(([ruta,nombre])=>`<a href="#/${ruta}" ${actual===ruta?'aria-current="page"':''}>${ICONO_SUB[ruta]?ic(ICONO_SUB[ruta]):''}${nombre}</a>`).join('')}</nav>`;
 }
+// Los mismos íconos que esos accesos tienen en Más, para reconocer el apartado de un vistazo.
+const ICONO_SUB = { stock:'inventory_2', compras:'local_shipping', proveedores:'handshake', caja:'payments', cuentas:'account_balance_wallet', mostrador:'storefront' };
 const memoriaVistas=new Map(); let vistaActual=''; let turnoRender=0;
 function recordarVista() {
   if(!vistaActual) return;
@@ -99,50 +103,55 @@ function interpretar() {
   return null;
 }
 
-function marcaHTML(t) {
-  const logo = t.logoId ? `<img src="/api/adjuntos/${Number(t.logoId)}" alt="" width="600" height="202">` : '';
-  const partes = t.nombre.split(' ');
-  return `<a class="marca" href="#/hoy" aria-label="${esc(t.nombre)}, ir a Hoy"><span class="marca__nombre${logo ? ' marca__nombre--logo' : ''}" translate="no">${logo || esc(partes[0])}</span>${partes.length > 1 && !logo ? `<span class="marca__sub" translate="no">${esc(partes.slice(1).join(' '))}</span>` : ''}</a>`;
+// Isotipo de INYECAR (el del favicon): barras inclinadas roja y plata sobre grafito.
+export const ISOTIPO = '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" fill="#292929"/><path d="M10 7h5l-3 18H7z" fill="#AE040F"/><path d="M17 7h8l-3 18h-8z" fill="#BEBEBE"/></svg>';
+// Marca del taller: su logo si lo cargó; si no, el isotipo de INYECAR.
+export function marcaTaller(t) {
+  return `<span class="tm${t.logoId ? '' : ' tm--isotipo'}" aria-hidden="true">${t.logoId ? `<img src="/api/adjuntos/${Number(t.logoId)}" alt="">` : ISOTIPO}</span>`;
 }
+const iniciales = (n) => n.split(/\s+/).filter((x) => /^[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(x)).slice(0, 2).map((x) => x[0].toUpperCase()).join('') || '·';
 
 function armarEsqueleto() {
   const s = app.sesion;
   const u = s.usuario;
-  const iniciales = u.nombre.split(/\s+/).filter((x) => /^[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(x)).slice(0, 2).map((x) => x[0].toUpperCase()).join('');
-  const primerNombre = u.nombre.split(/\s+/)[0];
-  const corto = { dueno: 'Dueño', recepcion: 'Recepción', mecanico: 'Mecánico' }[u.rol] || u.rolTexto;
-  const demo = s.taller.demo ? '<p class="demo-marca" title="Personas, autos e importes inventados para mostrar el sistema">Demostración · datos ficticios</p>' : '';
+  const destinos = [['hoy', 'Hoy', 'home'], ['trabajos', 'Taller', 'garage'], ['autos', 'Clientes', 'group'], ['mas', 'Más', 'apps']];
   raiz.innerHTML = `
-    <aside class="rail" aria-label="Menú principal">
-      ${marcaHTML(s.taller)}${demo}
-      <nav class="nav" aria-label="Apartados">
-        ${MENU.filter(x=>!x[3]||app.puede(x[3])).map(([r, t, i]) => `<a href="#/${r}" data-seccion="${r}">${icono(i)}<span>${t}</span></a>`).join('')}
-        <div class="nav__sep" role="presentation"></div>
-        <a href="#/mas" data-seccion="mas">${icono('mas_funciones')}<span>Más</span></a>
-        ${app.puede('config.taller')?`<a href="#/ajustes" data-seccion="ajustes">${icono('ajustes')}<span>Ajustes</span></a>`:''}
-        <a href="#/ayuda" data-seccion="ayuda">${icono('ayuda')}<span>Ayuda</span></a>
-      </nav>
-      <div class="rail__pie">
-        <div class="usuario"><span class="avatar" aria-hidden="true">${esc(iniciales || '·')}</span><div><strong>${esc(u.nombre)}</strong><span>${esc(u.rolTexto)}</span></div></div>
-        <button type="button" class="btn btn-chico btn-salir" data-salir>${icono('salir')}Salir</button>
-      </div>
+    <aside class="riel" aria-label="Menú principal">
+      <a class="riel-marca" href="#/hoy" aria-label="${esc(s.taller.nombre)}, ir a Hoy">${marcaTaller(s.taller)}<span><b translate="no">${esc(s.taller.nombre)}</b><small>Panel del taller</small></span></a>
+      ${app.puede('visita.recibir') ? `<a class="btn btn-primario riel-rec" href="#/recibir" aria-label="Recibir un auto">${ic('add')}<span>Recibir un auto</span></a>` : ''}
+      <nav aria-label="Apartados">${destinos.map(([r, t, i]) => `<a class="riel-b" href="#/${r}" data-seccion="${r}">${ic(i)}<span>${t}</span></a>`).join('')}</nav>
+      <button type="button" class="riel-yo" data-sesion aria-label="Tu sesión: ${esc(u.nombre)}"><span class="av">${esc(iniciales(u.nombre).slice(0, 1))}</span><span><b>${esc(u.nombre)}</b><small>${esc(u.rolTexto)}</small></span></button>
     </aside>
-    <header class="topbar">
-      ${marcaHTML(s.taller)}${s.taller.demo ? '<span class="topbar__demo" title="Personas, autos e importes inventados para mostrar el sistema">DEMO<span class="topbar__demo-detalle"> · datos ficticios</span></span>' : ''}
-      <div class="topbar__acciones">
-        ${selectorTema()}<a class="topbar__ayuda" href="#/ayuda" aria-label="Ayuda" title="Ayuda">${icono('ayuda')}</a><span class="topbar__sep" aria-hidden="true"></span>
-        <a class="topbar__usuario" href="#/mas" aria-label="${esc(u.nombre)}, ${esc(u.rolTexto)}. Ver tu sesión y salir"><span class="topbar__quien"><strong>${esc(primerNombre)}</strong><small>${esc(corto !== primerNombre ? corto : s.taller.nombre)}</small></span><span class="avatar" aria-hidden="true">${esc(iniciales || '·')}</span></a>
-      </div>
-    </header>
-    ${s.taller.demo ? '<p class="demo-movil">Demostración · datos ficticios</p>' : ''}
-    <div class="workspacebar"><span>Panel del taller <span class="muted">/</span> <strong data-ruta-titulo>Hoy</strong></span>${s.taller.demo ? '<span class="preview-label">Demostración · datos ficticios</span>' : ''}${selectorTema()}<a href="#/ayuda">${icono('ayuda')}Ayuda</a></div>
     <main class="principal" id="contenido" tabindex="-1"></main>
-    <nav class="tabbar tabbar--isla" aria-label="Navegación principal móvil">
-      ${[['hoy','Hoy','home'],['trabajos','Taller','garage'],...(app.puede('visita.recibir')?[['recibir','Recibir','add']]:[]),['autos','Clientes','group'],['mas','Más','apps']].map(([r,t,i])=>`<a href="#/${r}" data-seccion="${r}" ${r==='recibir'?'class="isla-recibir"':''}><span class="isla-icono" aria-hidden="true">${material(i)}</span><span>${t}</span></a>`).join('')}
-    </nav>`;
+    ${islaHTML({ recibir: app.puede('visita.recibir') })}
+    <dialog class="hoja-dlg" id="hoja-sesion" aria-labelledby="hoja-sesion-t">
+      <header><h2 id="hoja-sesion-t">Tu sesión</h2><button type="button" class="ibtn" data-cerrar aria-label="Cerrar">${ic('close')}</button></header>
+      <div class="hoja-c">
+        <div class="bloque-d"><div class="li-b" style="padding:0;min-height:0;cursor:default"><span class="av-b" aria-hidden="true">${esc(iniciales(u.nombre).slice(0, 1))}</span><span class="li-t"><b>${esc(u.nombre)}</b><small>${esc(u.rolTexto)} · <span translate="no">${esc(s.taller.nombre)}</span></small></span></div>
+          <p class="nota">${ic('info')}Cada persona usa su propia cuenta. Salí al terminar si compartís el dispositivo.</p></div>
+        <div class="sec-h"><h2 id="tema-t">Tema</h2></div><div class="seg" role="group" aria-labelledby="tema-t">${[['claro', 'Claro', 'light_mode'], ['oscuro', 'Oscuro', 'dark_mode'], ['automatico', 'Automático', 'contrast']].map(([m, t, i]) => `<button type="button" data-tema-modo="${m}">${ic(i)}${t}</button>`).join('')}</div>
+        <a class="btn" href="#/ayuda" data-cerrar>${ic('help')}Ayuda</a>
+        <button type="button" class="btn" data-salir>${ic('logout')}Salir</button>
+        <button type="button" class="btn btn-texto" data-salir-todas>Salir en todos mis dispositivos</button>
+      </div>
+    </dialog>`;
   raiz.removeAttribute('aria-busy');
-  enlazarTema();
-  raiz.querySelector('[data-salir]').addEventListener('click', () => salir());
+  enlazarIsla(raiz.querySelector('[data-isla]'));
+  const hoja = raiz.querySelector('#hoja-sesion');
+  let origen = null;
+  const marcarTema = () => hoja.querySelectorAll('[data-tema-modo]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.temaModo === (document.documentElement.dataset.tema || 'automatico'))));
+  document.addEventListener('click', (e) => {
+    const abrir = e.target.closest('[data-sesion]');
+    if (abrir && !hoja.open) { origen = abrir; marcarTema(); hoja.showModal(); }
+  });
+  hoja.addEventListener('click', (e) => {
+    if (e.target === hoja || e.target.closest('[data-cerrar]')) hoja.close();
+    const t = e.target.closest('[data-tema-modo]');
+    if (t) { aplicarTema(t.dataset.temaModo); try { localStorage.setItem('inyecar-tema', t.dataset.temaModo); } catch { /* se conserva en esta página */ } marcarTema(); }
+  });
+  hoja.addEventListener('close', () => { if (origen?.isConnected) origen.focus(); });
+  hoja.querySelector('[data-salir]').addEventListener('click', () => { hoja.close(); salir(); });
+  hoja.querySelector('[data-salir-todas]').addEventListener('click', () => { hoja.close(); salir(true); });
 }
 
 async function salir(todas = false) {
@@ -164,7 +173,7 @@ function pantallaIngreso(mensaje) {
   document.title = 'Ingresar · Panel del taller';
   raiz.className = '';
   raiz.removeAttribute('aria-busy');
-  raiz.innerHTML = `<main class="ingreso" id="contenido" tabindex="-1"><div class="ingreso__caja"><div class="ingreso-tema">${selectorTema()}</div>
+  raiz.innerHTML = `<main class="ingreso" id="contenido" tabindex="-1"><div class="ingreso__caja"><div class="ingreso-tema"><span class="marca-producto" translate="no"><span class="tm tm--isotipo">${ISOTIPO}</span><span><strong>Panel del taller</strong></span></span>${selectorTema()}</div>
     <div><h1>Ingresar al panel del taller</h1><p class="muted small" style="margin-top:6px">Usá el correo y la contraseña que te dio el dueño del taller.</p></div>
     ${mensaje ? `<div class="aviso aviso--ambar">${icono('info')}<div>${esc(mensaje)}</div></div>` : ''}
     <form class="form" id="f-ingreso" novalidate data-sin-aviso>
@@ -193,20 +202,19 @@ async function mostrar({ conservarScroll = false } = {}) {
   detenerMovimiento(main);
   const scroll = window.scrollY;
   raiz.querySelectorAll('[data-seccion]').forEach((a) => { if (a.dataset.seccion === r.seccion) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-  const grupo=grupoRuta(r);
-  const activo=grupo==='repuestos'?'stock':grupo==='taller'?'trabajos':grupo==='caja'?'caja':grupo==='ajustes'?'ajustes':['ficha'].includes(r.modulo)?'autos':r.modulo;
-  // La barra móvil agrupa los destinos secundarios en Más; el lateral conserva sus grupos.
+  // La isla y la columna lateral agrupan los destinos secundarios en Más.
   const movil = r.modulo==='recibir'?'recibir':r.modulo==='hoy' ? 'hoy'
     : ['trabajos','visita','pendientes'].includes(r.modulo) ? 'trabajos'
     : ['autos','ficha'].includes(r.modulo) ? 'autos'
     : 'mas';
   raiz.querySelectorAll('[data-seccion]').forEach(a=>{
-    const seleccionado = a.closest('.tabbar') ? movil : activo;
+    const seleccionado = movil;
     if(a.dataset.seccion===seleccionado)a.setAttribute('aria-current','page');
     else a.removeAttribute('aria-current');
   });
   app.pantalla = r.modulo;
-  raiz.dataset.modo=['recibir','visita'].includes(r.modulo)?'enfoque':'general';
+  raiz.dataset.modo=r.modulo==='recibir'?'enfoque':'general'; // la orden muestra la isla, como en el diseño final
+  colocarIndicador(raiz.querySelector('[data-isla]'));
   if (r.permiso && !app.puede(r.permiso)) {
     main.removeAttribute('aria-busy');
     document.title = `Sin acceso · ${app.sesion.taller.nombre}`;
@@ -216,14 +224,22 @@ async function mostrar({ conservarScroll = false } = {}) {
   }
   if (!conservarScroll) main.setAttribute('aria-busy', 'true');
   try {
-    const mod = await import(`./views/${r.modulo}.js?v=0.6.5`);
+    const mod = await import(`./views/${r.modulo}.js?v=0.7.0`);
     const v = await mod.default({ params: r.params, query: r.query, app });
     if(renderId!==turnoRender) return;
     if (!v) { main.removeAttribute('aria-busy'); return; }
     main.innerHTML = submenu(r)+v.html;
     main.dataset.pantalla=r.modulo;
-    main.querySelectorAll('.volver[href="#/mas"]').forEach(x=>x.remove());
-    const rt=raiz.querySelector('[data-ruta-titulo]'); if(rt)rt.textContent=v.titulo;
+    // Encabezado de módulo del diseño final: «volver» como ícono junto al título (a Más si el módulo no trae otro).
+    const cab=main.querySelector('.pagina > .cab');
+    if(cab&&r.seccion==='mas'&&r.modulo!=='mas'){
+      const v0=main.querySelector('.pagina > .volver');
+      const href=v0?.getAttribute('href')||'#/mas';
+      v0?.remove();
+      cab.classList.add('cab-modulo');
+      cab.insertAdjacentHTML('afterbegin',`<a class="ibtn" data-volver href="${esc(href)}" aria-label="Volver" title="Volver">${ic('arrow_back')}</a>`);
+      const sub=main.querySelector(':scope > .subnav'); if(sub) cab.after(sub); // los apartados del grupo van debajo del título
+    }
     vistaActual=location.hash;
     document.title = `${v.titulo} · ${app.sesion.taller.nombre}`;
     main.removeAttribute('aria-busy');
