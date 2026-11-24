@@ -1188,7 +1188,7 @@ button.rb-lr{cursor:pointer}
 .rb-lr-t small{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
 .rb-lr-st{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px}.rb-lr-st small{font-size:12px}.rb-lr-st .chip{white-space:normal}
 .rb-lr>.ic{align-self:center;width:20px;height:20px;color:var(--muted)}
-.rb-lr.ab{border-color:var(--amber);box-shadow:inset 3px 0 0 var(--amber)}
+.rb-lr.ab{border-color:var(--amber)}
 .rb-lr.cli{align-items:center}
 .rb-lr .placa{height:26px;min-width:0;font-size:17px}
 @media (hover:hover) and (pointer:fine){button.rb-lr:hover{border-color:var(--line-strong)}}

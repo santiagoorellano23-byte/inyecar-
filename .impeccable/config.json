@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "public/css/propuesta-a.css"
+        ],
+        "createdAt": "2026-11-24T16:47:10.120Z",
+        "reason": "Diseño de Growth Labs Talleres (commit e5f3a45): barra de 3 px del área activa del índice de Ajustes, un ítem de navegación, no una tarjeta"
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "public/css/propuesta-a.css"
+        ],
+        "createdAt": "2026-11-24T16:47:10.264Z",
+        "reason": "Patente Mercosur: la franja azul superior es parte de la chapa real (Growth Labs, commit 024ceda)"
+      }
+    ]
+  }
+}
