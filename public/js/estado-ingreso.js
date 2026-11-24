@@ -309,6 +309,20 @@ function fotoDemo(tipo,n){
   return new Promise(res=>c.toBlob(b=>{const file=new File([b],`foto-de-prueba-${n}.jpg`,{type:'image/jpeg'});file.demo=true;res(file);},'image/jpeg',.82));
 }
 
+// Formato 2 del registro (docs/FOTOS-INGRESO.md) a partir del paso 2: cada foto de daño apunta a su daño (aquí, una
+// tarjeta = un daño con su foto); el motor va aparte y solo con testigos; qué testigos se ven es opcional y «No
+// enciende» siempre se explica; la aclaración general es opcional. Tablero y exterior conservan qué muestra cada foto.
+export function registroIngreso(d,fotos,clave) {
+  const danos=d.carroceria==='con_danos'?fotos.filter(x=>x.tipo==='detalle'):[];
+  return {version:2,clave,carroceria:d.carroceria,tablero:d.tableroEstado,
+    motor:d.tableroEstado==='con_testigos'&&d.motorEstado||null,
+    testigos:d.tableroEstado==='con_testigos'?(d.testigosVer||'').trim():d.tableroEstado==='no_enciende'?(d.noEncVer||'').trim():'',
+    observaciones:(d.ingresoAclaracion||'').trim(),
+    danos:danos.map(x=>({descripcion:x.descripcion.trim()})),
+    fotos:[...fotos.filter(x=>x.tipo!=='detalle').map(({id,tipo,descripcion})=>({id,tipo,descripcion})),...danos.map((x,i)=>({id:x.id,tipo:'detalle',dano:i}))],
+    confirmado:!!d.ingresoConfirmado};
+}
+
 const TABLERO={sin_testigos:'Sin testigos de falla observados',con_testigos:'Con testigos encendidos',no_enciende:'No se pudo encender'};
 const TABLERO_2={sin_testigos:'Sin alertas observadas',con_testigos:'Con testigos encendidos',no_enciende:'No enciende el tablero'};
 const MOTOR={encendido:'Motor encendido',contacto:'Solo en contacto',no_arranca:'No arranca'};

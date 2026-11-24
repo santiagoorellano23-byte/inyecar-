@@ -100,6 +100,24 @@ test('Formato 2: varios daños conservan su descripción y sus fotos; un daño s
  assert.equal(estado.observaciones,'No se revisó el baúl (ficticio).');
  for(const id of [d1,d2,d3])assert.equal(E.servidor.db.prepare('SELECT visita_id FROM adjuntos WHERE id=?').get(id).visita_id,r.id);
 });
+test('Paso 2 de la interfaz: el registro que arma se acepta en formato 2, con cada daño y su foto y lo que muestra cada vista',async()=>{
+ const {registroIngreso}=await import('../public/js/estado-ingreso.js');
+ const base=await fotosPrueba(recepcion),d1=await subirDetalle(recepcion,base.clave,1),d2=await subirDetalle(recepcion,base.clave,2);
+ const fotos=[{...base.fotos[0],descripcion:'Tablero con check engine (ficticio)'},{...base.fotos[1],descripcion:'Frente y lateral derecho (ficticio)'},{id:d1,tipo:'detalle',descripcion:' Rayón puerta trasera (ficticio) '},{id:d2,tipo:'detalle',descripcion:'Óptica rota (ficticio)'}];
+ const d={carroceria:'con_danos',tableroEstado:'con_testigos',testigosVer:'',motorEstado:'',noEncVer:'texto de otra opción',ingresoAclaracion:'',ingresoConfirmado:'1'};
+ const e=registroIngreso(d,fotos,base.clave);
+ assert.equal(e.testigos,'');assert.equal(e.motor,null,'sin elegir, el motor queda vacío');
+ const estado=(await recepcion.post('/api/visitas',{...cuerpo(),estadoIngreso:e})).visita.recepcion.estadoIngreso;
+ assert.equal(estado.version,2);
+ assert.deepEqual(estado.danos.map(x=>[x.n,x.descripcion,x.fotos]),[[1,'Rayón puerta trasera (ficticio)',[d1]],[2,'Óptica rota (ficticio)',[d2]]]);
+ assert.deepEqual(estado.fotos.slice(0,2).map(f=>f.descripcion),['Tablero con check engine (ficticio)','Frente y lateral derecho (ficticio)']);
+ // Sin daños: las tarjetas de daño que hubiera en el borrador no se envían; «No enciende» manda su propio texto.
+ const otra=await fotosPrueba(recepcion);
+ const sin=registroIngreso({...d,carroceria:'sin_danos',tableroEstado:'no_enciende',noEncVer:'No prende ninguna luz (ficticio)'},[...otra.fotos,{id:null,tipo:'detalle',descripcion:'quedó en el borrador'}],otra.clave);
+ assert.deepEqual(sin.danos,[]);assert.equal(sin.fotos.length,2);
+ const est2=(await recepcion.post('/api/visitas',{...cuerpo(),estadoIngreso:sin})).visita.recepcion.estadoIngreso;
+ assert.equal(est2.tablero,'no_enciende');assert.equal(est2.testigos,'No prende ninguna luz (ficticio)');assert.equal(est2.motor,null);
+});
 test('Respaldo y restauración conservan el registro original, fotos privadas y huellas',async()=>{
  const r=await dueno.recibir(cuerpo()),original=r.visita.recepcion.estadoIngreso;
  const copia=await crearRespaldo({archivoBase:path.join(E.dir,'inyecar.db'),carpetaArchivos:path.join(E.dir,'archivos'),destino:path.join(E.dir,'copias-prueba')});

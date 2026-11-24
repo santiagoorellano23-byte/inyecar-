@@ -3,7 +3,7 @@ import {esc,icono,fecha,campo,casilla,leerForm,alEnviar,mostrarError,limpiarErro
 import {enlazarModelos} from './autos.js?v=0.7.0';
 import {entrada,detenerMovimiento} from '../movimiento.js?v=0.7.0';
 import {MARCAS,MOTIVOS,material,resumenMotivos,leerBorrador,guardarBorrador,borrarBorrador,borradorPara,ultimaLectura,visitaRelacionada} from '../recepcion-modelo.js?v=0.7.0';
-import {enlazarFotosIngreso,FORMATOS} from '../estado-ingreso.js?v=0.7.0';
+import {enlazarFotosIngreso,FORMATOS,registroIngreso} from '../estado-ingreso.js?v=0.7.0';
 import {ic,placa as placaD,logoMarca} from '../diseno.js?v=0.7.0';
 
 const PASOS=['Auto','Estado al ingresar','Motivo','Kilometraje','Autorización','Datos opcionales','Revisión'];
@@ -584,18 +584,7 @@ export default async function recibir({app,query}){
       if(paso===1){intento2=true;fotosIngreso.refrescar();actualizar2();if(!resumen2(true))return;}
       try{validar(paso);if(paso===5)omitido6=false;const siguiente=volverRevision?6:paso+1;if(volverRevision)ultimoCambio=paso;volverRevision=false;irPaso(siguiente);}catch(e){mostrarError(f,e);}});
     f.addEventListener('keydown',e=>{if(e.key==='Enter'&&paso<6&&e.target.tagName==='INPUT'&&!['radio','checkbox','search'].includes(e.target.type)){e.preventDefault();f.querySelector('[data-continuar]').click();}});
-    // Formato 2 del registro (docs/FOTOS-INGRESO.md): cada foto de daño apunta a su daño; el motor va aparte y
-    // solo con testigos; la aclaración general es opcional. Tablero y exterior conservan qué muestra cada foto.
-    const estadoIngresoV2=d=>{
-      const todas=fotosIngreso.datos(),danos=d.carroceria==='con_danos'?todas.filter(x=>x.tipo==='detalle'):[];
-      return {version:2,clave:claveDeEnvio(f),carroceria:d.carroceria,tablero:d.tableroEstado,
-        motor:d.tableroEstado==='con_testigos'&&d.motorEstado||null,
-        testigos:d.tableroEstado==='con_testigos'?d.testigosVer.trim():d.tableroEstado==='no_enciende'?d.noEncVer.trim():'',
-        observaciones:d.ingresoAclaracion.trim(),
-        danos:danos.map(x=>({descripcion:x.descripcion.trim()})),
-        fotos:[...todas.filter(x=>x.tipo!=='detalle').map(({id,tipo,descripcion})=>({id,tipo,descripcion})),...danos.map((x,i)=>({id:x.id,tipo:'detalle',dano:i}))],
-        confirmado:!!d.ingresoConfirmado};
-    };
+    const estadoIngresoV2=d=>registroIngreso(d,fotosIngreso.datos(),claveDeEnvio(f));
     const armarCuerpo=d=>{
       const aut=d.tipo==='service'||d.revisionCosto==='si',importe=importeDe(d);
       const cuerpo={estadoIngreso:estadoIngresoV2(d),tipo:d.tipo,km:d.sinKm?'':d.km,sinKm:!!d.sinKm,kmExplicacion:d.kmExplicacion,responsableId:d.responsableId||null,retiro:retiroDe(d),retiroNota:d.retiroNota,prioridad:d.urgente?'alta':'normal',relacionadaId:relacionada?.id||null,turnoId:turno?.id||null,plantillaId:d.tipo==='service'?d.plantillaId||null:null,
